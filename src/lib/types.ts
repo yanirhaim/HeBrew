@@ -3,6 +3,7 @@
 export interface PracticeExercise {
   id: string;
   type: "multiple_choice" | "input";
+  tense: "past" | "present" | "future";
   sentence: string; // The sentence with a blank (e.g., "_____ הלכתי למכולת")
   correctAnswer: string;
   options?: string[]; // For multiple choice

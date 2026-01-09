@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { generatePracticeExercises } from "@/lib/openrouter";
 import { PracticeExercise, Conjugation } from "@/lib/types";
@@ -9,25 +9,39 @@ import { Card } from "@/components/ui/Card";
 import HebrewInput from "@/components/HebrewInput";
 import VerbLearningFlow from "@/components/VerbLearningFlow";
 
-type PracticeMode = "learn" | "quiz";
+type Tense = "present" | "past" | "future";
+type Mode = "learn" | "quiz";
+
+const TENSE_ORDER: Tense[] = ["present", "past", "future"];
 
 export default function VerbPracticePage({ params }: { params: Promise<{ verb: string }> }) {
   const router = useRouter();
-  // Unwrap params using React.use()
   const { verb: encodedVerb } = use(params);
   const verb = decodeURIComponent(encodedVerb);
 
   const [isLoading, setIsLoading] = useState(true);
-  const [practiceMode, setPracticeMode] = useState<PracticeMode>("learn");
   const [exercises, setExercises] = useState<PracticeExercise[]>([]);
   const [conjugations, setConjugations] = useState<Conjugation[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  // Session State
+  const [currentTenseIndex, setCurrentTenseIndex] = useState(0);
+  const [currentMode, setCurrentMode] = useState<Mode>("learn");
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  
+  // Quiz State
   const [userInput, setUserInput] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [score, setScore] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [sessionComplete, setSessionComplete] = useState(false);
+
+  const currentTense = TENSE_ORDER[currentTenseIndex];
+
+  // Filter exercises for the current tense
+  const currentTenseExercises = useMemo(() => {
+    return exercises.filter(ex => ex.tense === currentTense);
+  }, [exercises, currentTense]);
 
   useEffect(() => {
     const fetchExercises = async () => {
@@ -45,10 +59,15 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
     fetchExercises();
   }, [verb]);
 
+  const handleLearnComplete = () => {
+    setCurrentMode("quiz");
+    setCurrentExerciseIndex(0);
+  };
+
   const handleCheck = () => {
     if (!userInput.trim()) return;
 
-    const currentExercise = exercises[currentIndex];
+    const currentExercise = currentTenseExercises[currentExerciseIndex];
     const correct = userInput.trim() === currentExercise.correctAnswer.trim();
     
     setIsCorrect(correct);
@@ -58,14 +77,25 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
     setShowFeedback(true);
   };
 
-  const handleNext = () => {
-    if (currentIndex < exercises.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-      setUserInput("");
-      setShowFeedback(false);
-      setIsCorrect(false);
+  const handleNextExercise = () => {
+    // Reset quiz inputs
+    setUserInput("");
+    setShowFeedback(false);
+    setIsCorrect(false);
+
+    if (currentExerciseIndex < currentTenseExercises.length - 1) {
+      // Next exercise in current tense
+      setCurrentExerciseIndex((prev) => prev + 1);
     } else {
-      setSessionComplete(true);
+      // Finished current tense quiz
+      if (currentTenseIndex < TENSE_ORDER.length - 1) {
+        // Move to next tense
+        setCurrentTenseIndex((prev) => prev + 1);
+        setCurrentMode("learn");
+      } else {
+        // Finished all tenses
+        setSessionComplete(true);
+      }
     }
   };
 
@@ -110,39 +140,57 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
   }
 
   // --- LEARN MODE ---
-  if (practiceMode === "learn") {
-      return (
-          <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-8 pt-6">
-               <div className="mb-6 flex items-center justify-between">
-                    <button 
-                        onClick={() => router.back()} 
-                        className="text-feather-gray hover:text-feather-text-light transition-colors"
-                    >
-                        ✕
-                    </button>
-                    <div className="text-sm font-bold uppercase tracking-wide text-feather-text-light">
-                        Learn
-                    </div>
-                    <div className="w-6"></div> {/* Spacer for center alignment */}
-               </div>
-               
-               <h1 className="mb-6 text-2xl font-extrabold text-feather-text text-center">
-                    Let's review "{verb}"
-               </h1>
-
-               <div className="flex-1 pb-8">
-                   <VerbLearningFlow 
-                        conjugations={conjugations} 
-                        onComplete={() => setPracticeMode("quiz")} 
-                   />
-               </div>
-          </div>
-      );
+  if (currentMode === "learn") {
+    return (
+        <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-8 pt-6">
+              <div className="mb-6 flex items-center justify-between">
+                  <button 
+                      onClick={() => router.back()} 
+                      className="text-feather-gray hover:text-feather-text-light transition-colors"
+                  >
+                      ✕
+                  </button>
+                  <div className="text-sm font-bold uppercase tracking-wide text-feather-text-light">
+                      Learn: {currentTense}
+                  </div>
+                  <div className="w-6"></div> {/* Spacer for center alignment */}
+              </div>
+              
+              <div className="flex-1 pb-8">
+                  <VerbLearningFlow 
+                      conjugations={conjugations} 
+                      tense={currentTense}
+                      onComplete={handleLearnComplete} 
+                  />
+              </div>
+        </div>
+    );
   }
 
   // --- QUIZ MODE ---
-  const currentExercise = exercises[currentIndex];
-  const progress = ((currentIndex) / exercises.length) * 100;
+  const currentExercise = currentTenseExercises[currentExerciseIndex];
+  
+  // Calculate total progress: 
+  // Each tense has 2 phases (Learn, Quiz). We can simplify by just tracking quiz progress overall or within tense.
+  // Or: (Completed Exercises / Total Exercises) ?
+  // Let's track overall exercise progress.
+  // We need to know how many exercises were in previous tenses.
+  // Simplification: just show progress within current tense quiz?
+  // User asked for staged flow.
+  
+  const currentTenseProgress = ((currentExerciseIndex + 1) / currentTenseExercises.length) * 100;
+
+  if (!currentExercise) {
+      // Fallback if no exercises for this tense (shouldn't happen if API works)
+      return (
+        <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center bg-white px-5">
+           <div className="text-center">
+               <p className="mb-4">No exercises found for {currentTense} tense.</p>
+               <Button onClick={handleNextExercise}>Skip to Next</Button>
+           </div>
+        </div>
+      );
+  }
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-40 pt-6">
@@ -157,14 +205,14 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
         <div className="h-4 flex-1 overflow-hidden rounded-full bg-feather-gray/20">
           <div 
             className="h-full bg-feather-green transition-all duration-500 ease-out"
-            style={{ width: `${progress}%` }}
+            style={{ width: `${currentTenseProgress}%` }}
           />
         </div>
       </div>
 
       <div className="flex-1">
-        <h1 className="mb-2 text-2xl font-extrabold text-feather-text text-center">
-          Practice: {verb}
+        <h1 className="mb-2 text-2xl font-extrabold text-feather-text text-center capitalize">
+          {currentTense} Quiz
         </h1>
         <p className="mb-8 text-center text-feather-text-light font-bold text-sm">
           Fill in the missing word
@@ -263,7 +311,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
                 size="lg"
                 className="min-w-[150px]"
                 disabled={!userInput}
-                onClick={showFeedback ? handleNext : handleCheck}
+                onClick={showFeedback ? handleNextExercise : handleCheck}
             >
                 {showFeedback ? "CONTINUE" : "CHECK"}
             </Button>

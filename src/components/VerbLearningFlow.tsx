@@ -7,12 +7,12 @@ import VerbLearningCard from "./VerbLearningCard";
 
 interface VerbLearningFlowProps {
   conjugations: Conjugation[];
+  tense: "past" | "present" | "future";
   onComplete: () => void;
 }
 
-export default function VerbLearningFlow({ conjugations, onComplete }: VerbLearningFlowProps) {
+export default function VerbLearningFlow({ conjugations, tense, onComplete }: VerbLearningFlowProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentTense, setCurrentTense] = useState<"past" | "present" | "future">("present");
 
   const totalItems = conjugations.length;
   const progress = ((currentIndex + 1) / totalItems) * 100;
@@ -20,11 +20,6 @@ export default function VerbLearningFlow({ conjugations, onComplete }: VerbLearn
   const handleNext = () => {
     if (currentIndex < totalItems - 1) {
       setCurrentIndex((prev) => prev + 1);
-    } else {
-      // If at the end of a tense, maybe cycle or just finish
-      // For simplicity, let's keep it manual per tense or cycle tenses?
-      // The plan said "Tense tabs (Past, Present, Future) to filter/jump."
-      // Let's implement Next to just go to next pronoun in current tense.
     }
   };
 
@@ -38,24 +33,11 @@ export default function VerbLearningFlow({ conjugations, onComplete }: VerbLearn
 
   return (
     <div className="flex flex-col h-full">
-      {/* Tense Tabs */}
-      <div className="flex justify-center gap-2 mb-6">
-        {(["past", "present", "future"] as const).map((tense) => (
-          <button
-            key={tense}
-            onClick={() => {
-                setCurrentTense(tense);
-                setCurrentIndex(0); // Reset to first pronoun when switching tense
-            }}
-            className={`px-4 py-2 rounded-xl text-sm font-bold uppercase tracking-wide transition-all ${
-              currentTense === tense
-                ? "bg-feather-blue text-white shadow-md"
-                : "bg-white text-feather-text-light hover:bg-feather-gray/20"
-            }`}
-          >
-            {tense}
-          </button>
-        ))}
+      {/* Tense Title */}
+      <div className="flex justify-center mb-6">
+          <div className="px-4 py-2 rounded-xl text-sm font-bold uppercase tracking-wide bg-feather-blue text-white shadow-md">
+            {tense} Tense
+          </div>
       </div>
 
       {/* Progress Bar for current tense pronouns */}
@@ -68,7 +50,7 @@ export default function VerbLearningFlow({ conjugations, onComplete }: VerbLearn
 
       {/* Card Area */}
       <div className="flex-1 mb-8">
-        <VerbLearningCard conjugation={currentConjugation} tense={currentTense} />
+        <VerbLearningCard conjugation={currentConjugation} tense={tense} />
       </div>
 
       {/* Navigation */}

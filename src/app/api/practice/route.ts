@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     const prompt = `Generate practice content for the Hebrew verb "${verb.trim()}".
 
     1. Conjugate the Hebrew verb in past (עבר), present (הווה), and future (עתיד) tenses for all 10 pronouns.
-    2. Generate 5-10 practice exercises.
+    2. Generate 12-15 practice exercises (4-5 for each tense: past, present, future).
     
     Mix two types of exercises:
     1. "multiple_choice": Provide a sentence with a blank, 4 options (1 correct, 3 distractors), and the correct answer.
@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
         {
           "id": "unique_id_1",
           "type": "multiple_choice",
+          "tense": "present", 
           "sentence": "Sentence with _____ blank",
           "correctAnswer": "word that fits",
           "options": ["word that fits", "distractor 1", "distractor 2", "distractor 3"],
@@ -60,6 +61,7 @@ export async function POST(request: NextRequest) {
         {
           "id": "unique_id_2",
           "type": "input",
+          "tense": "past",
           "sentence": "Sentence with _____ blank",
           "correctAnswer": "word that fits",
           "translation": "Spanish translation of the full sentence",
@@ -69,7 +71,8 @@ export async function POST(request: NextRequest) {
     }
 
     Important:
-    - Ensure exercises cover different tenses (past, present, future) and pronouns.
+    - Ensure exercises are evenly distributed across tenses (past, present, future).
+    - Tag each exercise with its "tense" ("past", "present", or "future").
     - Sentences should be natural and correct.
     - Distractors for multiple choice should be plausible.
     - Return ONLY valid JSON.
