@@ -92,7 +92,7 @@ export default function ConjugationPage() {
                 <div className="text-xl font-bold text-feather-text">{spanishTranslation}</div>
               </Card>
               <Button
-                variant="secondary"
+                variant="primary"
                 fullWidth
                 onClick={() => {
                   // TODO: Implement start practicing functionality
