@@ -41,11 +41,13 @@ export interface TranslationApiResponse {
   translation: string;
   isVerb: boolean;
   verbForm: string | null;
+  spanishTranslation: string | null;
+  conjugations: Conjugation[] | null;
 }
 
 export async function translateText(
   text: string,
-  direction: "he-to-en" | "en-to-he"
+  direction: "he-to-es" | "es-to-he"
 ): Promise<TranslationApiResponse> {
   try {
     const response = await fetch("/api/translate", {

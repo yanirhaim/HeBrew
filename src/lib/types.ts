@@ -23,5 +23,5 @@ export interface Word {
 export interface TranslationResult {
   original: string;
   translated: string;
-  direction: "he-to-en" | "en-to-he";
+  direction: "he-to-es" | "es-to-he";
 }

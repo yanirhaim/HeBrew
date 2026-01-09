@@ -9,22 +9,34 @@ import { Card } from "@/components/ui/Card";
 
 interface VerbConjugationCardProps {
   verb: string;
+  spanishTranslation?: string | null;
+  conjugations?: Conjugation[] | null;
 }
 
-export default function VerbConjugationCard({ verb }: VerbConjugationCardProps) {
+export default function VerbConjugationCard({ 
+  verb, 
+  spanishTranslation: initialSpanishTranslation,
+  conjugations: initialConjugations 
+}: VerbConjugationCardProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [conjugations, setConjugations] = useState<Conjugation[]>([]);
+  const [conjugations, setConjugations] = useState<Conjugation[]>(initialConjugations || []);
+  const [spanishTranslation, setSpanishTranslation] = useState<string | null>(initialSpanishTranslation || null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Use provided conjugations if available, otherwise use state
+  const displayConjugations = initialConjugations || conjugations;
+  const hasConjugations = displayConjugations && displayConjugations.length > 0;
+
   const handleToggle = async () => {
-    if (!isOpen && conjugations.length === 0 && !isLoading) {
-      // Fetch conjugations when opening for the first time
+    if (!isOpen && !hasConjugations && !isLoading) {
+      // Only fetch if conjugations weren't provided as props
       setIsLoading(true);
       setError(null);
       try {
         const result = await conjugateVerb(verb);
         setConjugations(result.conjugations);
+        setSpanishTranslation(result.spanishTranslation);
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Failed to load conjugations";
@@ -81,8 +93,8 @@ export default function VerbConjugationCard({ verb }: VerbConjugationCardProps) 
             </div>
           )}
 
-          {!isLoading && !error && conjugations.length > 0 && (
-            <ConjugationByTense conjugations={conjugations} />
+          {!isLoading && !error && hasConjugations && (
+            <ConjugationByTense conjugations={displayConjugations!} />
           )}
         </div>
       )}

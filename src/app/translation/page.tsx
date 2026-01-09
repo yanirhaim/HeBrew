@@ -6,13 +6,16 @@ import VerbConjugationCard from "@/components/VerbConjugationCard";
 import { translateText } from "@/lib/openrouter";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Conjugation } from "@/lib/types";
 
 export default function TranslationPage() {
   const [inputValue, setInputValue] = useState("");
   const [translation, setTranslation] = useState("");
-  const [direction, setDirection] = useState<"he-to-en" | "en-to-he">("he-to-en");
+  const [direction, setDirection] = useState<"he-to-es" | "es-to-he">("he-to-es");
   const [isVerb, setIsVerb] = useState(false);
   const [verbForm, setVerbForm] = useState<string | null>(null);
+  const [spanishTranslation, setSpanishTranslation] = useState<string | null>(null);
+  const [conjugations, setConjugations] = useState<Conjugation[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +27,8 @@ export default function TranslationPage() {
       setTranslation("");
       setIsVerb(false);
       setVerbForm(null);
+      setSpanishTranslation(null);
+      setConjugations(null);
       return;
     }
 
@@ -33,6 +38,8 @@ export default function TranslationPage() {
       setTranslation(result.translation);
       setIsVerb(result.isVerb);
       setVerbForm(result.verbForm);
+      setSpanishTranslation(result.spanishTranslation);
+      setConjugations(result.conjugations);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to translate text";
@@ -40,6 +47,8 @@ export default function TranslationPage() {
       setTranslation("");
       setIsVerb(false);
       setVerbForm(null);
+      setSpanishTranslation(null);
+      setConjugations(null);
     } finally {
       setIsLoading(false);
     }
@@ -53,28 +62,28 @@ export default function TranslationPage() {
 
       <div className="mb-6 flex gap-3">
         <Button
-          onClick={() => setDirection("he-to-en")}
-          variant={direction === "he-to-en" ? "primary" : "outline"}
+          onClick={() => setDirection("he-to-es")}
+          variant={direction === "he-to-es" ? "primary" : "outline"}
           className="flex-1"
           size="sm"
         >
-          Hebrew → English
+          Hebrew → Spanish
         </Button>
         <Button
-          onClick={() => setDirection("en-to-he")}
-          variant={direction === "en-to-he" ? "primary" : "outline"}
+          onClick={() => setDirection("es-to-he")}
+          variant={direction === "es-to-he" ? "primary" : "outline"}
           className="flex-1"
           size="sm"
         >
-          English → Hebrew
+          Spanish → Hebrew
         </Button>
       </div>
 
       <form onSubmit={handleSubmit} className="mb-8 space-y-4">
         <HebrewInput
-          label={direction === "he-to-en" ? "Enter Hebrew text" : "Enter English text"}
-          placeholder={direction === "he-to-en" ? "שלום" : "Hello"}
-          dir={direction === "he-to-en" ? "rtl" : "ltr"}
+          label={direction === "he-to-es" ? "Enter Hebrew text" : "Enter Spanish text"}
+          placeholder={direction === "he-to-es" ? "שלום" : "Hola"}
+          dir={direction === "he-to-es" ? "rtl" : "ltr"}
           value={inputValue}
           onChange={(e) => {
             setInputValue(e.target.value);
@@ -113,14 +122,18 @@ export default function TranslationPage() {
             <div className="mb-1 text-xs font-bold uppercase tracking-wide text-feather-blue">Translation</div>
             <div
               className="text-xl font-bold text-feather-text"
-              dir={direction === "he-to-en" ? "ltr" : "rtl"}
+              dir={direction === "he-to-es" ? "ltr" : "rtl"}
             >
               {translation}
             </div>
           </Card>
 
           {isVerb && verbForm && (
-            <VerbConjugationCard verb={verbForm} />
+            <VerbConjugationCard 
+              verb={verbForm} 
+              spanishTranslation={spanishTranslation}
+              conjugations={conjugations}
+            />
           )}
         </div>
       )}

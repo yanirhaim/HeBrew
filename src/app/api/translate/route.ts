@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { Conjugation } from "@/lib/types";
 
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
@@ -14,6 +15,8 @@ interface TranslationResponse {
   translation: string;
   isVerb: boolean;
   verbForm?: string; // The verb in its base/infinitive form for conjugation
+  spanishTranslation?: string; // Spanish translation (for verbs)
+  conjugations?: Conjugation[]; // Conjugations (for verbs)
 }
 
 export async function POST(request: NextRequest) {
@@ -28,41 +31,122 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (direction !== "he-to-en" && direction !== "en-to-he") {
+    if (direction !== "he-to-es" && direction !== "es-to-he") {
       return NextResponse.json(
-        { error: "Invalid direction. Must be 'he-to-en' or 'en-to-he'." },
+        { error: "Invalid direction. Must be 'he-to-es' or 'es-to-he'." },
         { status: 400 }
       );
     }
 
-    const isHebrewToEnglish = direction === "he-to-en";
+    const isHebrewToSpanish = direction === "he-to-es";
     
-    const prompt = isHebrewToEnglish
-      ? `Translate the following Hebrew text to English: "${text.trim()}"
+    const prompt = isHebrewToSpanish
+      ? `Translate the following Hebrew text to Spanish: "${text.trim()}"
+
+If the Hebrew word is a verb, you must:
+1. Translate it to Spanish (infinitive form)
+2. Provide the Hebrew verb in its infinitive/base form
+3. Conjugate the Hebrew verb in past (עבר), present (הווה), and future (עתיד) tenses for all 10 pronouns
+4. Include Spanish translation of the verb in infinitive form
 
 Return a JSON object with this structure:
 {
-  "translation": "English translation",
+  "translation": "Spanish translation",
   "isVerb": true/false,
-  "verbForm": "Hebrew verb in infinitive/base form (only if isVerb is true, otherwise omit this field)"
+  "verbForm": "Hebrew verb in infinitive/base form (only if isVerb is true, otherwise omit this field)",
+  "spanishTranslation": "Spanish translation of the verb in infinitive form (only if isVerb is true, otherwise omit this field)",
+  "conjugations": [
+    {
+      "pronoun": "אני (I)",
+      "past": "Hebrew past tense",
+      "pastTransliteration": "Romanized transliteration",
+      "pastExample": "Example sentence in Hebrew",
+      "present": "Hebrew present tense",
+      "presentTransliteration": "Romanized transliteration",
+      "presentExample": "Example sentence in Hebrew",
+      "future": "Hebrew future tense",
+      "futureTransliteration": "Romanized transliteration",
+      "futureExample": "Example sentence in Hebrew"
+    },
+    {
+      "pronoun": "אתה (You m.)",
+      ...
+    },
+    {
+      "pronoun": "את (You f.)",
+      ...
+    },
+    {
+      "pronoun": "הוא (He)",
+      ...
+    },
+    {
+      "pronoun": "היא (She)",
+      ...
+    },
+    {
+      "pronoun": "אנחנו (We)",
+      ...
+    },
+    {
+      "pronoun": "אתם (You m. pl.)",
+      ...
+    },
+    {
+      "pronoun": "אתן (You f. pl.)",
+      ...
+    },
+    {
+      "pronoun": "הם (They m.)",
+      ...
+    },
+    {
+      "pronoun": "הן (They f.)",
+      ...
+    }
+  ]
 }
 
 Important:
-- If the Hebrew word is a verb, set "isVerb" to true and provide the verb in its infinitive/base form in "verbForm"
-- If it's not a verb, set "isVerb" to false and omit "verbForm"
+- If the Hebrew word is a verb, set "isVerb" to true and provide ALL fields including conjugations for all 10 pronouns
+- If it's not a verb, set "isVerb" to false and omit "verbForm", "spanishTranslation", and "conjugations"
+- Provide accurate Hebrew conjugations with transliterations and example sentences
 - Return ONLY valid JSON, no additional text or markdown`
-      : `Translate the following English text to Hebrew: "${text.trim()}"
+      : `Translate the following Spanish text to Hebrew: "${text.trim()}"
+
+If the Spanish word is a verb and the Hebrew translation is also a verb, you must:
+1. Translate it to Hebrew
+2. Provide the Hebrew verb in its infinitive/base form
+3. Conjugate the Hebrew verb in past (עבר), present (הווה), and future (עתיד) tenses for all 10 pronouns
+4. Include Spanish translation of the verb in infinitive form
 
 Return a JSON object with this structure:
 {
   "translation": "Hebrew translation",
   "isVerb": true/false,
-  "verbForm": "Hebrew verb in infinitive/base form (only if isVerb is true, otherwise omit this field)"
+  "verbForm": "Hebrew verb in infinitive/base form (only if isVerb is true, otherwise omit this field)",
+  "spanishTranslation": "Spanish translation of the verb in infinitive form (only if isVerb is true, otherwise omit this field)",
+  "conjugations": [
+    {
+      "pronoun": "אני (I)",
+      "past": "Hebrew past tense",
+      "pastTransliteration": "Romanized transliteration",
+      "pastExample": "Example sentence in Hebrew",
+      "present": "Hebrew present tense",
+      "presentTransliteration": "Romanized transliteration",
+      "presentExample": "Example sentence in Hebrew",
+      "future": "Hebrew future tense",
+      "futureTransliteration": "Romanized transliteration",
+      "futureExample": "Example sentence in Hebrew"
+    },
+    ... (all 10 pronouns)
+  ]
 }
 
 Important:
-- If the English word is a verb and the Hebrew translation is also a verb, set "isVerb" to true and provide the Hebrew verb in its infinitive/base form in "verbForm"
-- If it's not a verb, set "isVerb" to false and omit "verbForm"
+- If the Spanish word is a verb and the Hebrew translation is also a verb, set "isVerb" to true and provide ALL fields including conjugations for all 10 pronouns
+- If it's not a verb, set "isVerb" to false and omit "verbForm", "spanishTranslation", and "conjugations"
+- Provide accurate Hebrew conjugations with transliterations and example sentences
 - Return ONLY valid JSON, no additional text or markdown`;
 
     const completion = await openai.chat.completions.create({
@@ -80,7 +164,7 @@ Important:
       ],
       response_format: { type: "json_object" },
       temperature: 0.3,
-      max_tokens: 500,
+      max_tokens: 3000,
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -120,10 +204,28 @@ Important:
       );
     }
 
+    // Validate conjugations if verb
+    if (parsedResponse.isVerb) {
+      if (
+        !parsedResponse.verbForm ||
+        !parsedResponse.spanishTranslation ||
+        !parsedResponse.conjugations ||
+        !Array.isArray(parsedResponse.conjugations) ||
+        parsedResponse.conjugations.length !== 10
+      ) {
+        return NextResponse.json(
+          { error: "Invalid response structure: verb conjugations are incomplete" },
+          { status: 500 }
+        );
+      }
+    }
+
     return NextResponse.json({
       translation: parsedResponse.translation,
       isVerb: parsedResponse.isVerb || false,
       verbForm: parsedResponse.verbForm || null,
+      spanishTranslation: parsedResponse.spanishTranslation || null,
+      conjugations: parsedResponse.conjugations || null,
     });
   } catch (error: any) {
     console.error("Error calling OpenRouter:", error);
