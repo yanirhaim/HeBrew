@@ -1,25 +1,52 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #1e293b;
-  --primary: #3b82f6;
-  --primary-light: #dbeafe;
-}
-
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-nunito);
+  
+  /* Duolingo-inspired "Juicy" Palette - Defined directly in theme for reliability */
+  --color-feather-green: #58cc02;
+  --color-feather-green-shadow: #58a700;
+  
+  --color-feather-blue: #1cb0f6;
+  --color-feather-blue-shadow: #1899d6;
+  
+  --color-feather-red: #ff4b4b;
+  --color-feather-red-shadow: #ea2b2b;
+  
+  --color-feather-yellow: #ffc800;
+  --color-feather-yellow-shadow: #e5a500;
+  
+  --color-feather-gray: #e5e5e5;
+  --color-feather-gray-shadow: #cecece;
+  
+  --color-feather-text: #4b4b4b;
+  --color-feather-text-light: #777777;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #4b4b4b;
+  
+  /* Fallback/Legacy vars mapped to new palette */
+  --primary: #58cc02;
+  --primary-light: #d7ffb8;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-nunito), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Force headings to use the brand font */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-nunito), Arial, Helvetica, sans-serif;
+  font-weight: 800;
+  color: var(--foreground);
 }
 
 /* RTL support for Hebrew text */
@@ -30,9 +57,10 @@ body {
 
 /* Ensure Hebrew text renders properly */
 .hebrew-text {
-  font-family: var(--font-geist-sans), "Noto Sans Hebrew", "Arial Hebrew", Arial, sans-serif;
+  font-family: var(--font-nunito), "Noto Sans Hebrew", "Arial Hebrew", Arial, sans-serif;
   direction: rtl;
   text-align: right;
+  font-weight: 700;
 }
 
 /* Mobile touch targets */

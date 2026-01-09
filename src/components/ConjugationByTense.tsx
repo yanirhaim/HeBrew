@@ -1,4 +1,5 @@
 import { Conjugation } from "@/lib/types";
+import { Card } from "@/components/ui/Card";
 
 interface ConjugationByTenseProps {
   conjugations: Conjugation[];
@@ -8,10 +9,18 @@ const TenseTable = ({
   title,
   tenseKey,
   conjugations,
+  colorClass = "text-feather-blue",
+  bgColorClass = "bg-blue-50",
+  borderColorClass = "border-blue-100",
+  iconColor = "#1cb0f6"
 }: {
   title: string;
   tenseKey: "past" | "present" | "future";
   conjugations: Conjugation[];
+  colorClass?: string;
+  bgColorClass?: string;
+  borderColorClass?: string;
+  iconColor?: string;
 }) => {
   const getTenseData = (conjugation: Conjugation) => {
     switch (tenseKey) {
@@ -37,42 +46,24 @@ const TenseTable = ({
   };
 
   return (
-    <div className="mb-8 overflow-hidden rounded-lg border border-blue-100 bg-white">
-      <div className="flex items-center gap-2 border-b border-blue-100 bg-blue-50 px-4 py-3">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M4 4C4 2.89543 4.89543 2 6 2H14C15.1046 2 16 2.89543 16 4V16C16 17.1046 15.1046 18 14 18H6C4.89543 18 4 17.1046 4 16V4Z"
-            fill="#3B82F6"
-          />
-          <path
-            d="M6 6H14M6 9H14M6 12H10"
-            stroke="white"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-        </svg>
-        <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
+    <Card className="mb-8 p-0 overflow-hidden border-2">
+      <div className={`flex items-center gap-3 border-b-2 border-feather-gray ${bgColorClass} px-5 py-4`}>
+        <h3 className={`text-lg font-extrabold uppercase tracking-wide ${colorClass}`}>{title}</h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-blue-100 bg-blue-50/50">
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">
+            <tr className="border-b-2 border-feather-gray bg-white">
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-feather-text-light">
                 Person
               </th>
-              <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700">
+              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-feather-text-light">
                 Hebrew
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-feather-text-light">
                 Transliteration
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-feather-text-light">
                 Example
               </th>
             </tr>
@@ -83,18 +74,18 @@ const TenseTable = ({
               return (
                 <tr
                   key={index}
-                  className="border-b border-blue-50 last:border-b-0 hover:bg-blue-50/30"
+                  className="border-b border-feather-gray last:border-b-0 hover:bg-feather-gray/10 transition-colors"
                 >
-                  <td className="px-4 py-3 text-sm font-medium text-slate-700">
+                  <td className="px-4 py-4 text-sm font-bold text-feather-text">
                     {conjugation.pronoun}
                   </td>
-                  <td className="px-4 py-3 text-right text-sm font-medium text-slate-800" dir="rtl">
+                  <td className="px-4 py-4 text-right text-lg font-bold text-feather-text hebrew-text" dir="rtl">
                     {tenseData.hebrew}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-600">
+                  <td className="px-4 py-4 text-sm font-medium text-feather-text-light">
                     {tenseData.transliteration}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-600" dir="rtl">
+                  <td className="px-4 py-4 text-sm font-medium text-feather-text-light" dir="rtl">
                     {tenseData.example}
                   </td>
                 </tr>
@@ -103,16 +94,34 @@ const TenseTable = ({
           </tbody>
         </table>
       </div>
-    </div>
+    </Card>
   );
 };
 
 export default function ConjugationByTense({ conjugations }: ConjugationByTenseProps) {
   return (
     <div className="space-y-6">
-      <TenseTable title="Past Tense (עבר)" tenseKey="past" conjugations={conjugations} />
-      <TenseTable title="Present Tense (הווה)" tenseKey="present" conjugations={conjugations} />
-      <TenseTable title="Future Tense (עתיד)" tenseKey="future" conjugations={conjugations} />
+      <TenseTable 
+        title="Past Tense (עבר)" 
+        tenseKey="past" 
+        conjugations={conjugations}
+        colorClass="text-feather-blue"
+        bgColorClass="bg-blue-50" 
+      />
+      <TenseTable 
+        title="Present Tense (הווה)" 
+        tenseKey="present" 
+        conjugations={conjugations} 
+        colorClass="text-feather-green"
+        bgColorClass="bg-green-50"
+      />
+      <TenseTable 
+        title="Future Tense (עתיד)" 
+        tenseKey="future" 
+        conjugations={conjugations} 
+        colorClass="text-feather-red"
+        bgColorClass="bg-red-50"
+      />
     </div>
   );
 }

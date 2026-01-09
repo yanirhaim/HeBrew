@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Conjugation } from "@/lib/types";
 import ConjugationByTense from "./ConjugationByTense";
 import { conjugateVerb } from "@/lib/openrouter";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 
 interface VerbConjugationCardProps {
   verb: string;
@@ -35,43 +37,47 @@ export default function VerbConjugationCard({ verb }: VerbConjugationCardProps) 
   };
 
   return (
-    <div className="mt-4 rounded-lg border border-blue-100 bg-white overflow-hidden">
-      <button
+    <Card className="mt-6 overflow-hidden p-0 border-0">
+      <Button
+        variant="ghost"
+        fullWidth
         onClick={handleToggle}
-        className="w-full flex items-center justify-between px-4 py-3 bg-blue-50 hover:bg-blue-100 transition-colors"
+        className="rounded-none border-b border-feather-gray bg-blue-50 hover:bg-blue-100 h-auto py-4"
       >
-        <span className="text-sm font-medium text-slate-700">
-          {isOpen ? "Hide" : "Show"} Conjugation
-        </span>
-        <svg
-          className={`w-5 h-5 text-slate-600 transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
-      </button>
+        <div className="flex w-full items-center justify-between">
+          <span className="text-sm font-extrabold uppercase tracking-wide text-feather-blue">
+            {isOpen ? "Hide" : "Show"} Conjugation
+          </span>
+          <svg
+            className={`h-6 w-6 text-feather-blue transition-transform ${
+              isOpen ? "rotate-180" : ""
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={3}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </div>
+      </Button>
 
       {isOpen && (
-        <div className="p-4">
+        <div className="p-4 bg-white">
           {isLoading && (
             <div className="py-8 text-center">
-              <div className="mb-2 text-sm text-slate-500">Loading conjugations...</div>
-              <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+              <div className="mb-4 text-sm font-bold text-feather-text-light">Loading conjugations...</div>
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-feather-blue border-t-transparent"></div>
             </div>
           )}
 
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-              <div className="text-sm font-medium text-red-800">{error}</div>
+            <div className="rounded-xl border-2 border-feather-red bg-red-50 px-4 py-3">
+              <div className="text-sm font-bold text-feather-red">{error}</div>
             </div>
           )}
 
@@ -80,6 +86,6 @@ export default function VerbConjugationCard({ verb }: VerbConjugationCardProps) 
           )}
         </div>
       )}
-    </div>
+    </Card>
   );
 }

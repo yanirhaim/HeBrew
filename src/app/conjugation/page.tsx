@@ -5,6 +5,8 @@ import HebrewInput from "@/components/HebrewInput";
 import ConjugationByTense from "@/components/ConjugationByTense";
 import { Conjugation } from "@/lib/types";
 import { conjugateVerb } from "@/lib/openrouter";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 
 export default function ConjugationPage() {
   const [inputValue, setInputValue] = useState("");
@@ -40,12 +42,12 @@ export default function ConjugationPage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-4 pb-24 pt-8">
-      <h1 className="mb-6 text-2xl font-semibold text-slate-800">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-32 pt-8">
+      <h1 className="mb-8 text-center text-3xl font-extrabold text-feather-text">
         Conjugation
       </h1>
       
-      <form onSubmit={handleSubmit} className="mb-6">
+      <form onSubmit={handleSubmit} className="mb-8 space-y-4">
         <HebrewInput
           label="Enter Hebrew verb"
           placeholder="כתב"
@@ -57,45 +59,48 @@ export default function ConjugationPage() {
             }
           }}
         />
-        <button
+        <Button
           type="submit"
+          variant="secondary"
+          size="lg"
+          fullWidth
           disabled={isLoading}
-          className="mt-4 w-full rounded-lg bg-blue-500 px-4 py-3 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? "Conjugating..." : "Conjugate"}
-        </button>
+        </Button>
       </form>
 
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-          <div className="text-sm font-medium text-red-800">{error}</div>
-        </div>
+        <Card className="mb-6 border-feather-red bg-red-50 text-feather-red">
+          <div className="font-bold">{error}</div>
+        </Card>
       )}
 
       {isLoading && (
-        <div className="py-8 text-center">
-          <div className="mb-2 text-sm text-slate-500">Conjugating verb...</div>
-          <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+        <div className="py-12 text-center">
+          <div className="mb-4 text-lg font-bold text-feather-text-light">Conjugating verb...</div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-feather-blue border-t-transparent"></div>
         </div>
       )}
 
       {!isLoading && conjugations.length > 0 && (
-        <div>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           {spanishTranslation && (
-            <div className="mb-6">
-              <div className="mb-3 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
-                <div className="text-sm text-slate-500">Spanish Translation:</div>
-                <div className="text-lg font-semibold text-slate-800">{spanishTranslation}</div>
-              </div>
-              <button
+            <div className="mb-8 space-y-4">
+              <Card className="bg-blue-50 border-feather-blue">
+                <div className="mb-1 text-xs font-bold uppercase tracking-wide text-feather-blue">Translation</div>
+                <div className="text-xl font-bold text-feather-text">{spanishTranslation}</div>
+              </Card>
+              <Button
+                variant="outline"
+                fullWidth
                 onClick={() => {
                   // TODO: Implement add to dictionary functionality
                   console.log("Add to dictionary:", inputValue, spanishTranslation);
                 }}
-                className="w-full rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100"
               >
-                Agregar a diccionario
-              </button>
+                ADD TO DICTIONARY
+              </Button>
             </div>
           )}
           <ConjugationByTense conjugations={conjugations} />
@@ -103,8 +108,11 @@ export default function ConjugationPage() {
       )}
 
       {!isLoading && inputValue.trim() && conjugations.length === 0 && !error && (
-        <div className="py-8 text-center text-sm text-slate-400">
-          Click "Conjugate" to see results
+        <div className="mt-12 text-center">
+           <div className="text-6xl mb-4">🤔</div>
+           <p className="text-lg font-bold text-feather-text-light">
+            Enter a verb to see magic happen!
+           </p>
         </div>
       )}
     </div>

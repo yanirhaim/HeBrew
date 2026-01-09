@@ -1,4 +1,5 @@
 import { Word } from "@/lib/types";
+import { Card } from "@/components/ui/Card";
 
 interface WordCardProps {
   word: Word;
@@ -6,11 +7,11 @@ interface WordCardProps {
 
 export default function WordCard({ word }: WordCardProps) {
   return (
-    <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
-      <div className="mb-2 text-xl font-semibold text-slate-800" dir="rtl">
+    <Card className="flex flex-col items-center justify-center py-6 text-center hover:border-feather-blue transition-colors cursor-pointer active:scale-[0.98]">
+      <div className="mb-2 text-2xl font-bold text-feather-text hebrew-text" dir="rtl">
         {word.hebrew}
       </div>
-      <div className="text-sm text-slate-600">{word.translation}</div>
-    </div>
+      <div className="text-base font-bold text-feather-text-light">{word.translation}</div>
+    </Card>
   );
 }

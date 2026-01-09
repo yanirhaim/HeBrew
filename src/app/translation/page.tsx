@@ -4,6 +4,8 @@ import { useState } from "react";
 import HebrewInput from "@/components/HebrewInput";
 import VerbConjugationCard from "@/components/VerbConjugationCard";
 import { translateText } from "@/lib/openrouter";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 
 export default function TranslationPage() {
   const [inputValue, setInputValue] = useState("");
@@ -44,35 +46,31 @@ export default function TranslationPage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-4 pb-24 pt-8">
-      <h1 className="mb-6 text-2xl font-semibold text-slate-800">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-32 pt-8">
+      <h1 className="mb-8 text-center text-3xl font-extrabold text-feather-text">
         Translation
       </h1>
 
-      <div className="mb-4 flex gap-2">
-        <button
+      <div className="mb-6 flex gap-3">
+        <Button
           onClick={() => setDirection("he-to-en")}
-          className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-            direction === "he-to-en"
-              ? "bg-blue-500 text-white"
-              : "bg-blue-50 text-slate-600"
-          }`}
+          variant={direction === "he-to-en" ? "primary" : "outline"}
+          className="flex-1"
+          size="sm"
         >
           Hebrew → English
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => setDirection("en-to-he")}
-          className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-            direction === "en-to-he"
-              ? "bg-blue-500 text-white"
-              : "bg-blue-50 text-slate-600"
-          }`}
+          variant={direction === "en-to-he" ? "primary" : "outline"}
+          className="flex-1"
+          size="sm"
         >
           English → Hebrew
-        </button>
+        </Button>
       </div>
 
-      <form onSubmit={handleSubmit} className="mb-6">
+      <form onSubmit={handleSubmit} className="mb-8 space-y-4">
         <HebrewInput
           label={direction === "he-to-en" ? "Enter Hebrew text" : "Enter English text"}
           placeholder={direction === "he-to-en" ? "שלום" : "Hello"}
@@ -85,39 +83,41 @@ export default function TranslationPage() {
             }
           }}
         />
-        <button
+        <Button
           type="submit"
+          variant="secondary"
+          size="lg"
+          fullWidth
           disabled={isLoading}
-          className="mt-4 w-full rounded-lg bg-blue-500 px-4 py-3 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? "Translating..." : "Translate"}
-        </button>
+        </Button>
       </form>
 
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-          <div className="text-sm font-medium text-red-800">{error}</div>
-        </div>
+        <Card className="mb-6 border-feather-red bg-red-50 text-feather-red">
+          <div className="font-bold">{error}</div>
+        </Card>
       )}
 
       {isLoading && (
-        <div className="py-8 text-center">
-          <div className="mb-2 text-sm text-slate-500">Translating...</div>
-          <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+        <div className="py-12 text-center">
+          <div className="mb-4 text-lg font-bold text-feather-text-light">Translating...</div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-feather-blue border-t-transparent"></div>
         </div>
       )}
 
       {!isLoading && translation && (
-        <div>
-          <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
-            <div className="mb-2 text-sm text-slate-500">Translation:</div>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Card className="mb-4 bg-blue-50 border-feather-blue">
+            <div className="mb-1 text-xs font-bold uppercase tracking-wide text-feather-blue">Translation</div>
             <div
-              className="text-lg font-medium text-slate-800"
+              className="text-xl font-bold text-feather-text"
               dir={direction === "he-to-en" ? "ltr" : "rtl"}
             >
               {translation}
             </div>
-          </div>
+          </Card>
 
           {isVerb && verbForm && (
             <VerbConjugationCard verb={verbForm} />
@@ -126,8 +126,11 @@ export default function TranslationPage() {
       )}
 
       {!isLoading && inputValue.trim() && !translation && !error && (
-        <div className="py-8 text-center text-sm text-slate-400">
-          Click "Translate" to see results
+        <div className="mt-12 text-center">
+           <div className="text-6xl mb-4">🌍</div>
+           <p className="text-lg font-bold text-feather-text-light">
+            Ready to translate!
+           </p>
         </div>
       )}
     </div>

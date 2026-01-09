@@ -7,11 +7,11 @@ interface EmptyStateProps {
 export default function EmptyState({ title, description, icon = "📭" }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="mb-4 text-6xl">{icon}</div>
-      <h3 className="mb-2 text-lg font-semibold text-slate-800">
+      <div className="mb-6 text-7xl">{icon}</div>
+      <h3 className="mb-3 text-xl font-extrabold text-feather-text">
         {title}
       </h3>
-      <p className="max-w-sm text-sm text-slate-500">{description}</p>
+      <p className="max-w-xs text-base font-bold text-feather-text-light leading-relaxed">{description}</p>
     </div>
   );
 }
