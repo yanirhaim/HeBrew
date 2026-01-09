@@ -36,3 +36,37 @@ export async function conjugateVerb(
     throw new Error("Unknown error occurred while conjugating verb");
   }
 }
+
+export interface TranslationApiResponse {
+  translation: string;
+  isVerb: boolean;
+  verbForm: string | null;
+}
+
+export async function translateText(
+  text: string,
+  direction: "he-to-en" | "en-to-he"
+): Promise<TranslationApiResponse> {
+  try {
+    const response = await fetch("/api/translate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text, direction }),
+    });
+
+    if (!response.ok) {
+      const errorData: ConjugationError = await response.json();
+      throw new Error(errorData.error || "Failed to translate text");
+    }
+
+    const data: TranslationApiResponse = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Unknown error occurred while translating text");
+  }
+}
