@@ -92,14 +92,14 @@ export default function ConjugationPage() {
                 <div className="text-xl font-bold text-feather-text">{spanishTranslation}</div>
               </Card>
               <Button
-                variant="outline"
+                variant="secondary"
                 fullWidth
                 onClick={() => {
-                  // TODO: Implement add to dictionary functionality
-                  console.log("Add to dictionary:", inputValue, spanishTranslation);
+                  // TODO: Implement start practicing functionality
+                  console.log("Start practicing:", inputValue, spanishTranslation);
                 }}
               >
-                ADD TO DICTIONARY
+                START PRACTICING
               </Button>
             </div>
           )}
