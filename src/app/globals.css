@@ -2,7 +2,9 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1e293b;
+  --primary: #3b82f6;
+  --primary-light: #dbeafe;
 }
 
 @theme inline {
@@ -12,15 +14,52 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* RTL support for Hebrew text */
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Ensure Hebrew text renders properly */
+.hebrew-text {
+  font-family: var(--font-geist-sans), "Noto Sans Hebrew", "Arial Hebrew", Arial, sans-serif;
+  direction: rtl;
+  text-align: right;
+}
+
+/* Mobile touch targets */
+button,
+a {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Prevent text selection on mobile for better UX */
+@media (max-width: 768px) {
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Safe area padding for mobile devices (iOS notch/home indicator) */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ensure proper text rendering for Hebrew */
+* {
+  text-rendering: optimizeLegibility;
 }
