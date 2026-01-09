@@ -1,8 +1,12 @@
-import { Conjugation } from "./types";
+import { Conjugation, PracticeExercise } from "./types";
 
 export interface ConjugationApiResponse {
   spanishTranslation: string;
   conjugations: Conjugation[];
+}
+
+export interface PracticeApiResponse {
+  exercises: PracticeExercise[];
 }
 
 export interface ConjugationError {
@@ -70,5 +74,32 @@ export async function translateText(
       throw error;
     }
     throw new Error("Unknown error occurred while translating text");
+  }
+}
+
+export async function generatePracticeExercises(
+  verb: string
+): Promise<PracticeApiResponse> {
+  try {
+    const response = await fetch("/api/practice", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ verb }),
+    });
+
+    if (!response.ok) {
+      const errorData: ConjugationError = await response.json();
+      throw new Error(errorData.error || "Failed to generate exercises");
+    }
+
+    const data: PracticeApiResponse = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Unknown error occurred while generating exercises");
   }
 }

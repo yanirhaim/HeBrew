@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import HebrewInput from "@/components/HebrewInput";
 import ConjugationByTense from "@/components/ConjugationByTense";
 import { Conjugation } from "@/lib/types";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
 export default function ConjugationPage() {
+  const router = useRouter();
   const [inputValue, setInputValue] = useState("");
   const [conjugations, setConjugations] = useState<Conjugation[]>([]);
   const [spanishTranslation, setSpanishTranslation] = useState("");
@@ -95,8 +97,7 @@ export default function ConjugationPage() {
                 variant="primary"
                 fullWidth
                 onClick={() => {
-                  // TODO: Implement start practicing functionality
-                  console.log("Start practicing:", inputValue, spanishTranslation);
+                  router.push(`/practice/${inputValue.trim()}`);
                 }}
               >
                 START PRACTICING
