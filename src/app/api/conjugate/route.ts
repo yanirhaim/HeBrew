@@ -2,14 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { Conjugation } from "@/lib/types";
 
-const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
-  defaultHeaders: {
-    "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-    "X-Title": "HeBrew - Hebrew Learning App",
-  },
-});
+function getOpenAIClient() {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENROUTER_API_KEY environment variable is not set");
+  }
+  
+  return new OpenAI({
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKey,
+    defaultHeaders: {
+      "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+      "X-Title": "HeBrew - Hebrew Learning App",
+    },
+  });
+}
 
 interface ConjugationResponse {
   spanishTranslation: string;
@@ -18,6 +25,13 @@ interface ConjugationResponse {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!process.env.OPENROUTER_API_KEY) {
+      return NextResponse.json(
+        { error: "OPENROUTER_API_KEY environment variable is not configured" },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
     const { verb } = body;
 
@@ -92,6 +106,7 @@ Important:
 - Return ONLY valid JSON, no additional text or markdown
 - Ensure all 10 pronouns are included`;
 
+    const openai = getOpenAIClient();
     const completion = await openai.chat.completions.create({
       model: "openai/gpt-4o",
       messages: [
