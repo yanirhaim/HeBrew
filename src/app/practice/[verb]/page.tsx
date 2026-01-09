@@ -3,10 +3,13 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { generatePracticeExercises } from "@/lib/openrouter";
-import { PracticeExercise } from "@/lib/types";
+import { PracticeExercise, Conjugation } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import HebrewInput from "@/components/HebrewInput";
+import VerbLearningFlow from "@/components/VerbLearningFlow";
+
+type PracticeMode = "learn" | "quiz";
 
 export default function VerbPracticePage({ params }: { params: Promise<{ verb: string }> }) {
   const router = useRouter();
@@ -15,7 +18,9 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
   const verb = decodeURIComponent(encodedVerb);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [practiceMode, setPracticeMode] = useState<PracticeMode>("learn");
   const [exercises, setExercises] = useState<PracticeExercise[]>([]);
+  const [conjugations, setConjugations] = useState<Conjugation[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userInput, setUserInput] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
@@ -29,6 +34,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
       try {
         const result = await generatePracticeExercises(verb);
         setExercises(result.exercises);
+        setConjugations(result.conjugations);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load exercises");
       } finally {
@@ -66,7 +72,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
   if (isLoading) {
     return (
       <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center bg-white px-5">
-        <div className="mb-4 text-lg font-bold text-feather-text-light">Preparing exercises...</div>
+        <div className="mb-4 text-lg font-bold text-feather-text-light">Preparing your lesson...</div>
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-feather-blue border-t-transparent"></div>
       </div>
     );
@@ -103,6 +109,38 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
     );
   }
 
+  // --- LEARN MODE ---
+  if (practiceMode === "learn") {
+      return (
+          <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-8 pt-6">
+               <div className="mb-6 flex items-center justify-between">
+                    <button 
+                        onClick={() => router.back()} 
+                        className="text-feather-gray hover:text-feather-text-light transition-colors"
+                    >
+                        ✕
+                    </button>
+                    <div className="text-sm font-bold uppercase tracking-wide text-feather-text-light">
+                        Learn
+                    </div>
+                    <div className="w-6"></div> {/* Spacer for center alignment */}
+               </div>
+               
+               <h1 className="mb-6 text-2xl font-extrabold text-feather-text text-center">
+                    Let's review "{verb}"
+               </h1>
+
+               <div className="flex-1 pb-8">
+                   <VerbLearningFlow 
+                        conjugations={conjugations} 
+                        onComplete={() => setPracticeMode("quiz")} 
+                   />
+               </div>
+          </div>
+      );
+  }
+
+  // --- QUIZ MODE ---
   const currentExercise = exercises[currentIndex];
   const progress = ((currentIndex) / exercises.length) * 100;
 

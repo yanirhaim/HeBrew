@@ -7,6 +7,7 @@ export interface ConjugationApiResponse {
 
 export interface PracticeApiResponse {
   exercises: PracticeExercise[];
+  conjugations: Conjugation[];
 }
 
 export interface ConjugationError {

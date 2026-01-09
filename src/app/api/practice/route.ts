@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOpenAIClient } from "@/lib/openai";
-import { PracticeExercise } from "@/lib/types";
+import { PracticeExercise, Conjugation } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,14 +21,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const prompt = `Generate 5-10 practice exercises for the Hebrew verb "${verb.trim()}".
+    const prompt = `Generate practice content for the Hebrew verb "${verb.trim()}".
+
+    1. Conjugate the Hebrew verb in past (עבר), present (הווה), and future (עתיד) tenses for all 10 pronouns.
+    2. Generate 5-10 practice exercises.
     
     Mix two types of exercises:
     1. "multiple_choice": Provide a sentence with a blank, 4 options (1 correct, 3 distractors), and the correct answer.
     2. "input": Provide a sentence with a blank and the correct answer. User must type the answer.
 
-    Return the response as a JSON object with a key "exercises" containing an array of objects with this structure:
+    Return the response as a JSON object with this structure:
     {
+      "conjugations": [
+        {
+          "pronoun": "אני (I)",
+          "past": "Hebrew past tense",
+          "pastTransliteration": "Romanized transliteration",
+          "pastExample": "Example sentence in Hebrew",
+          "present": "Hebrew present tense",
+          "presentTransliteration": "Romanized transliteration",
+          "presentExample": "Example sentence in Hebrew",
+          "future": "Hebrew future tense",
+          "futureTransliteration": "Romanized transliteration",
+          "futureExample": "Example sentence in Hebrew"
+        },
+        ... (all 10 pronouns)
+      ],
       "exercises": [
         {
           "id": "unique_id_1",
@@ -53,7 +71,7 @@ export async function POST(request: NextRequest) {
     Important:
     - Ensure exercises cover different tenses (past, present, future) and pronouns.
     - Sentences should be natural and correct.
-    - Distractors for multiple choice should be plausible (e.g., same verb but wrong conjugation/pronoun).
+    - Distractors for multiple choice should be plausible.
     - Return ONLY valid JSON.
     `;
 
@@ -73,7 +91,7 @@ export async function POST(request: NextRequest) {
       ],
       response_format: { type: "json_object" },
       temperature: 0.4,
-      max_tokens: 3000,
+      max_tokens: 4000,
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -94,7 +112,7 @@ export async function POST(request: NextRequest) {
       cleanedContent = cleanedContent.substring(firstBrace, lastBrace + 1);
     }
 
-    let parsedResponse: { exercises: PracticeExercise[] };
+    let parsedResponse: { exercises: PracticeExercise[]; conjugations: Conjugation[] };
     try {
       parsedResponse = JSON.parse(cleanedContent);
     } catch (parseError) {
@@ -108,13 +126,21 @@ export async function POST(request: NextRequest) {
 
     if (!parsedResponse.exercises || !Array.isArray(parsedResponse.exercises)) {
       return NextResponse.json(
-        { error: "Invalid response structure from AI model" },
+        { error: "Invalid response structure: missing exercises" },
+        { status: 500 }
+      );
+    }
+
+    if (!parsedResponse.conjugations || !Array.isArray(parsedResponse.conjugations)) {
+      return NextResponse.json(
+        { error: "Invalid response structure: missing conjugations" },
         { status: 500 }
       );
     }
 
     return NextResponse.json({
       exercises: parsedResponse.exercises,
+      conjugations: parsedResponse.conjugations,
     });
   } catch (error: any) {
     console.error("Error generating practice exercises:", error);
