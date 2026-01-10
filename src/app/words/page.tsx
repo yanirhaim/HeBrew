@@ -1,17 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import WordCard from "@/components/WordCard";
 import EmptyState from "@/components/EmptyState";
 import { Word } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
-
-// Mockup: empty word bank initially
-const mockWords: Word[] = [];
+import { subscribeToWords } from "@/lib/firestore";
+import AddWordModal from "@/components/AddWordModal";
 
 export default function WordsPage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [words] = useState<Word[]>(mockWords);
+  const [words, setWords] = useState<Word[]>([]);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToWords(
+      (updatedWords) => {
+        setWords(updatedWords);
+        setIsLoading(false);
+        setError(null);
+      },
+      (err) => {
+        console.error("Subscription error:", err);
+        setError("Failed to connect to the database. Please check your internet connection or permissions.");
+        setIsLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   const filteredWords = words.filter(
     (word) =>
@@ -39,23 +60,51 @@ export default function WordsPage() {
         variant="primary"
         fullWidth
         className="mb-8"
+        onClick={() => setIsAddModalOpen(true)}
       >
         ADD NEW WORD
       </Button>
 
-      {filteredWords.length > 0 ? (
+      {error && (
+        <div className="mb-6 rounded-xl bg-red-50 p-4 text-center text-red-600">
+          <p className="font-bold">Error</p>
+          <p className="text-sm">{error}</p>
+          <p className="mt-2 text-xs text-red-500">Check browser console for details</p>
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="flex justify-center py-10">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-feather-gray/30 border-t-feather-blue"></div>
+        </div>
+      ) : filteredWords.length > 0 ? (
         <div className="space-y-4">
           {filteredWords.map((word) => (
-            <WordCard key={word.id} word={word} />
+            <WordCard 
+              key={word.id} 
+              word={word} 
+              onClick={() => router.push(`/words/${word.id}`)}
+            />
           ))}
         </div>
       ) : (
-        <EmptyState
-          title="No words yet"
-          description="Start building your Hebrew vocabulary by adding words to your bank."
-          icon="📚"
-        />
+        !error && (
+          <EmptyState
+            title={searchQuery ? "No matches found" : "No words yet"}
+            description={
+              searchQuery
+                ? "Try a different search term"
+                : "Start building your Hebrew vocabulary by adding words to your bank."
+            }
+            icon="📚"
+          />
+        )
       )}
+
+      <AddWordModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+      />
     </div>
   );
 }

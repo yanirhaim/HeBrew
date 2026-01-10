@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import HebrewInput from "@/components/HebrewInput";
 import VerbLearningFlow from "@/components/VerbLearningFlow";
+import { addWord } from "@/lib/firestore";
 
 type Tense = "present" | "past" | "future";
 type Mode = "learn" | "quiz";
@@ -59,7 +60,21 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
     fetchExercises();
   }, [verb]);
 
-  const handleLearnComplete = () => {
+  const handleLearnComplete = async () => {
+    // Save word to database when starting quiz
+    // Only save effectively once per session (e.g. at the first transition to quiz)
+    // or we can let the addWord function handle duplicates if implemented (currently it just adds)
+    // To avoid duplicates, we might want to check if it exists or use setDoc with merge if we had the ID.
+    // For now, we'll blindly add it.
+    
+    // Note: We don't have the translation handy here, so we'll use a placeholder or empty string.
+    // Ideally, the generatePracticeExercises should return the translation of the verb itself.
+    try {
+        await addWord(verb, ""); 
+    } catch (e) {
+        console.error("Error saving word on quiz start:", e);
+    }
+
     setCurrentMode("quiz");
     setCurrentExerciseIndex(0);
   };

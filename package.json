@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:models": "tsx tests/model-benchmark.test.ts"
   },
   "dependencies": {
+    "firebase": "^12.7.0",
     "next": "16.1.1",
     "openai": "^6.15.0",
     "react": "19.2.3",
@@ -19,9 +21,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^16.4.7",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }

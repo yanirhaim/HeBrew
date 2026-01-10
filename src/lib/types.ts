@@ -29,6 +29,8 @@ export interface Word {
   hebrew: string;
   translation: string;
   createdAt: Date;
+  masteryLevel?: number;
+  conjugations?: Conjugation[];
 }
 
 export interface TranslationResult {
