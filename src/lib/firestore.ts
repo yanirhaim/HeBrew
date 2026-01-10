@@ -7,22 +7,32 @@ import {
   onSnapshot, 
   query, 
   orderBy, 
-  Timestamp 
+  Timestamp,
+  getDocs,
+  where,
+  limit
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { Word } from "./types";
+import { MasteryByTense, Word } from "./types";
 
 const COLLECTION_NAME = "words";
 
-export const addWord = async (hebrew: string, translation: string, conjugations?: any[]) => {
+export const addWord = async (
+  hebrew: string,
+  translation: string,
+  conjugations?: any[],
+  mastery?: MasteryByTense
+) => {
   try {
-    await addDoc(collection(db, COLLECTION_NAME), {
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
       hebrew,
       translation,
       createdAt: Timestamp.now(),
       masteryLevel: 0,
-      conjugations: conjugations || null
+      conjugations: conjugations || null,
+      mastery: mastery || null
     });
+    return docRef.id;
   } catch (error) {
     console.error("Error adding word: ", error);
     throw error;
@@ -67,6 +77,7 @@ export const subscribeToWords = (
           translation: data.translation,
           createdAt: data.createdAt?.toDate() || new Date(),
           masteryLevel: data.masteryLevel || 0,
+          mastery: data.mastery || null,
           conjugations: data.conjugations || []
         } as Word;
       });
@@ -77,4 +88,47 @@ export const subscribeToWords = (
       if (onError) onError(error);
     }
   );
+};
+
+export const findWordByHebrew = async (hebrew: string): Promise<Word | null> => {
+  try {
+    const q = query(
+      collection(db, COLLECTION_NAME),
+      where("hebrew", "==", hebrew),
+      limit(1)
+    );
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return null;
+    const docSnap = snapshot.docs[0];
+    const data = docSnap.data();
+    return {
+      id: docSnap.id,
+      hebrew: data.hebrew,
+      translation: data.translation,
+      createdAt: data.createdAt?.toDate() || new Date(),
+      masteryLevel: data.masteryLevel || 0,
+      mastery: data.mastery || null,
+      conjugations: data.conjugations || []
+    } as Word;
+  } catch (error) {
+    console.error("Error finding word:", error);
+    return null;
+  }
+};
+
+export const updatePronounMastery = async (
+  id: string,
+  tense: "past" | "present" | "future",
+  pronounCode: string,
+  score: number
+) => {
+  try {
+    const wordRef = doc(db, COLLECTION_NAME, id);
+    await updateDoc(wordRef, {
+      [`mastery.${tense}.${pronounCode}`]: Math.max(0, Math.min(100, score))
+    });
+  } catch (error) {
+    console.error("Error updating pronoun mastery:", error);
+    throw error;
+  }
 };

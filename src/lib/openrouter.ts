@@ -1,11 +1,14 @@
 import { Conjugation, PracticeExercise } from "./types";
 
 export interface ConjugationApiResponse {
+  infinitive: string;
   spanishTranslation: string;
   conjugations: Conjugation[];
 }
 
 export interface PracticeApiResponse {
+  verbInfinitive: string;
+  spanishTranslation: string;
   exercises: PracticeExercise[];
   conjugations: Conjugation[];
 }
@@ -103,4 +106,45 @@ export async function generatePracticeExercises(
     }
     throw new Error("Unknown error occurred while generating exercises");
   }
+}
+
+export function cachePracticePayload(verb: string, payload: PracticeApiResponse) {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(
+      `practice-cache:${verb}`,
+      JSON.stringify({
+        ...payload,
+        cachedAt: Date.now()
+      })
+    );
+  } catch (error) {
+    console.warn("Unable to cache practice payload", error);
+  }
+}
+
+export function readCachedPracticePayload(verb: string): PracticeApiResponse | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(`practice-cache:${verb}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed?.exercises && parsed?.conjugations) {
+      return parsed as PracticeApiResponse;
+    }
+  } catch (error) {
+    console.warn("Unable to read cached practice payload", error);
+  }
+  return null;
+}
+
+export async function fetchConjugationAndPractice(verb: string) {
+  const [conjugation, practice] = await Promise.all([
+    conjugateVerb(verb),
+    generatePracticeExercises(verb),
+  ]);
+
+  cachePracticePayload(verb, practice);
+
+  return { conjugation, practice };
 }

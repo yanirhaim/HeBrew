@@ -5,15 +5,12 @@ import { useRouter } from "next/navigation";
 import WordCard from "@/components/WordCard";
 import EmptyState from "@/components/EmptyState";
 import { Word } from "@/lib/types";
-import { Button } from "@/components/ui/Button";
 import { subscribeToWords } from "@/lib/firestore";
-import AddWordModal from "@/components/AddWordModal";
 
 export default function WordsPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [words, setWords] = useState<Word[]>([]);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +38,7 @@ export default function WordsPage() {
   );
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-32 pt-8">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-40 pt-8">
       <h1 className="mb-8 text-center text-3xl font-extrabold text-feather-text">
         Words Bank
       </h1>
@@ -55,15 +52,6 @@ export default function WordsPage() {
           className="w-full rounded-2xl border-2 border-feather-gray bg-feather-gray/10 px-4 py-3 text-base font-bold text-feather-text placeholder-feather-text-light transition-all focus:border-feather-blue focus:bg-white focus:outline-none"
         />
       </div>
-
-      <Button
-        variant="primary"
-        fullWidth
-        className="mb-8"
-        onClick={() => setIsAddModalOpen(true)}
-      >
-        ADD NEW WORD
-      </Button>
 
       {error && (
         <div className="mb-6 rounded-xl bg-red-50 p-4 text-center text-red-600">
@@ -100,11 +88,6 @@ export default function WordsPage() {
           />
         )
       )}
-
-      <AddWordModal 
-        isOpen={isAddModalOpen} 
-        onClose={() => setIsAddModalOpen(false)} 
-      />
     </div>
   );
 }

@@ -23,60 +23,67 @@ export async function POST(request: NextRequest) {
 
     const prompt = `Generate practice content for the Hebrew verb "${verb.trim()}".
 
-    1. Conjugate the Hebrew verb in past (עבר), present (הווה), and future (עתיד) tenses for all 10 pronouns.
-    2. Generate 12-15 practice exercises (4-5 for each tense: past, present, future).
-    
-    Mix two types of exercises:
-    1. "multiple_choice": Provide a sentence with a blank, 4 options (1 correct, 3 distractors), and the correct answer.
-    2. "input": Provide a sentence with a blank and the correct answer. User must type the answer.
+1. Conjugate the Hebrew verb in past (עבר), present (הווה), and future (עתיד) tenses for all 10 pronouns.
+2. Generate 12-15 practice exercises (4-5 for each tense: past, present, future).
+3. Include pronoun metadata so we can track mastery per pronoun and tense.
 
-    Return the response as a JSON object with this structure:
+Mix two types of exercises:
+1. "multiple_choice": Provide a sentence with a blank, 4 options (1 correct, 3 distractors), and the correct answer.
+2. "input": Provide a sentence with a blank and the correct answer. User must type the answer.
+
+Return ONLY valid JSON with this structure:
+{
+  "verbInfinitive": "Hebrew infinitive form",
+  "spanishTranslation": "Spanish translation of the infinitive",
+  "conjugations": [
     {
-      "conjugations": [
-        {
-          "pronoun": "אני (I)",
-          "past": "Hebrew past tense",
-          "pastTransliteration": "Romanized transliteration",
-          "pastExample": "Example sentence in Hebrew",
-          "present": "Hebrew present tense",
-          "presentTransliteration": "Romanized transliteration",
-          "presentExample": "Example sentence in Hebrew",
-          "future": "Hebrew future tense",
-          "futureTransliteration": "Romanized transliteration",
-          "futureExample": "Example sentence in Hebrew"
-        },
-        ... (all 10 pronouns)
-      ],
-      "exercises": [
-        {
-          "id": "unique_id_1",
-          "type": "multiple_choice",
-          "tense": "present", 
-          "sentence": "Sentence with _____ blank",
-          "correctAnswer": "word that fits",
-          "options": ["word that fits", "distractor 1", "distractor 2", "distractor 3"],
-          "translation": "Spanish translation of the full sentence",
-          "hint": "Optional hint (e.g. tense, pronoun)"
-        },
-        {
-          "id": "unique_id_2",
-          "type": "input",
-          "tense": "past",
-          "sentence": "Sentence with _____ blank",
-          "correctAnswer": "word that fits",
-          "translation": "Spanish translation of the full sentence",
-          "hint": "Optional hint"
-        }
-      ]
+      "pronounCode": "ani",
+      "pronoun": "אני (I)",
+      "past": "Hebrew past tense",
+      "pastTransliteration": "Romanized transliteration",
+      "pastExample": "Example sentence in Hebrew",
+      "present": "Hebrew present tense",
+      "presentTransliteration": "Romanized transliteration",
+      "presentExample": "Example sentence in Hebrew",
+      "future": "Hebrew future tense",
+      "futureTransliteration": "Romanized transliteration",
+      "futureExample": "Example sentence in Hebrew"
+    },
+    ... (all 10 pronouns with pronounCode from: ani, ata_m, at_f, hu_m, hi_f, anachnu, atem_m, aten_f, hem_m, hen_f)
+  ],
+  "exercises": [
+    {
+      "id": "unique_id_1",
+      "type": "multiple_choice",
+      "tense": "present", 
+      "pronounCode": "ani",
+      "pronounLabel": "אני (I)",
+      "sentence": "Sentence with _____ blank",
+      "correctAnswer": "word that fits",
+      "options": ["word that fits", "distractor 1", "distractor 2", "distractor 3"],
+      "translation": "Spanish translation of the full sentence",
+      "hint": "Optional hint (e.g. tense, pronoun)"
+    },
+    {
+      "id": "unique_id_2",
+      "type": "input",
+      "tense": "past",
+      "pronounCode": "ata_m",
+      "pronounLabel": "אתה (You m.)",
+      "sentence": "Sentence with _____ blank",
+      "correctAnswer": "word that fits",
+      "translation": "Spanish translation of the full sentence",
+      "hint": "Optional hint"
     }
+  ]
+}
 
-    Important:
-    - Ensure exercises are evenly distributed across tenses (past, present, future).
-    - Tag each exercise with its "tense" ("past", "present", or "future").
-    - Sentences should be natural and correct.
-    - Distractors for multiple choice should be plausible.
-    - Return ONLY valid JSON.
-    `;
+Important:
+- Ensure exercises are evenly distributed across tenses (past, present, future).
+- Tag each exercise with its "tense" ("past", "present", or "future") and "pronounCode" from the allowed list.
+- Sentences should be natural and correct.
+- Distractors for multiple choice should be plausible.
+- Return ONLY valid JSON.`;
 
     const openai = getOpenAIClient();
     const completion = await openai.chat.completions.create({
@@ -115,7 +122,12 @@ export async function POST(request: NextRequest) {
       cleanedContent = cleanedContent.substring(firstBrace, lastBrace + 1);
     }
 
-    let parsedResponse: { exercises: PracticeExercise[]; conjugations: Conjugation[] };
+    let parsedResponse: {
+      verbInfinitive: string;
+      spanishTranslation: string;
+      exercises: PracticeExercise[];
+      conjugations: Conjugation[];
+    };
     try {
       parsedResponse = JSON.parse(cleanedContent);
     } catch (parseError) {
@@ -141,7 +153,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!parsedResponse.verbInfinitive || !parsedResponse.spanishTranslation) {
+      return NextResponse.json(
+        { error: "Invalid response structure: missing verb or translation" },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
+      verbInfinitive: parsedResponse.verbInfinitive,
+      spanishTranslation: parsedResponse.spanishTranslation,
       exercises: parsedResponse.exercises,
       conjugations: parsedResponse.conjugations,
     });

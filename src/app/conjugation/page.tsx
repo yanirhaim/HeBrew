@@ -4,18 +4,43 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import HebrewInput from "@/components/HebrewInput";
 import ConjugationByTense from "@/components/ConjugationByTense";
-import { Conjugation } from "@/lib/types";
-import { conjugateVerb } from "@/lib/openrouter";
+import { Conjugation, MasteryByTense } from "@/lib/types";
+import { cachePracticePayload, fetchConjugationAndPractice } from "@/lib/openrouter";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { addWord } from "@/lib/firestore";
 
 export default function ConjugationPage() {
   const router = useRouter();
   const [inputValue, setInputValue] = useState("");
   const [conjugations, setConjugations] = useState<Conjugation[]>([]);
   const [spanishTranslation, setSpanishTranslation] = useState("");
+  const [canonicalVerb, setCanonicalVerb] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const normalizePronounCode = (conjugation: Conjugation, fallbackIndex: number) => {
+    if (conjugation.pronounCode) return conjugation.pronounCode;
+    return (
+      conjugation.pronoun
+        ?.toLowerCase()
+        ?.replace(/[^a-z0-9]+/gi, "_")
+        ?.replace(/^_+|_+$/g, "") || `p_${fallbackIndex}`
+    );
+  };
+
+  const buildEmptyMastery = (items: Conjugation[]): MasteryByTense => {
+    const base: Record<string, number> = {};
+    items.forEach((item, idx) => {
+      const code = normalizePronounCode(item, idx);
+      base[code] = 0;
+    });
+    return {
+      past: { ...base },
+      present: { ...base },
+      future: { ...base },
+    };
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,22 +54,50 @@ export default function ConjugationPage() {
 
     setIsLoading(true);
     try {
-      const result = await conjugateVerb(inputValue.trim());
-      setConjugations(result.conjugations);
-      setSpanishTranslation(result.spanishTranslation);
+      const trimmed = inputValue.trim();
+      const { conjugation, practice } = await fetchConjugationAndPractice(trimmed);
+
+      setConjugations(conjugation.conjugations);
+      setSpanishTranslation(conjugation.spanishTranslation);
+      setCanonicalVerb(conjugation.infinitive);
+      // Cache practice payload also under the canonical verb key
+      cachePracticePayload(conjugation.infinitive, practice);
+
+
+      // Save verb immediately with conjugations + zeroed mastery
+      const mastery = buildEmptyMastery(conjugation.conjugations);
+      const wordId = await addWord(
+        conjugation.infinitive,
+        conjugation.spanishTranslation,
+        conjugation.conjugations,
+        mastery
+      );
+
+      // Cache practice payload and word metadata for the practice page
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(
+          `word-meta:${conjugation.infinitive}`,
+          JSON.stringify({
+            wordId,
+            translation: conjugation.spanishTranslation,
+            mastery,
+          })
+        );
+      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to conjugate verb";
       setError(errorMessage);
       setConjugations([]);
       setSpanishTranslation("");
+      setCanonicalVerb("");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-32 pt-8">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-40 pt-8">
       <h1 className="mb-8 text-center text-3xl font-extrabold text-feather-text">
         Conjugation
       </h1>
@@ -97,7 +150,8 @@ export default function ConjugationPage() {
                 variant="primary"
                 fullWidth
                 onClick={() => {
-                  router.push(`/practice/${inputValue.trim()}`);
+                  const verbToPractice = canonicalVerb || inputValue.trim();
+                  router.push(`/practice/${encodeURIComponent(verbToPractice)}`);
                 }}
               >
                 START PRACTICING

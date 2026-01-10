@@ -4,10 +4,11 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import VerbConjugationCard from "@/components/VerbConjugationCard";
 import { Word } from "@/lib/types";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import MasteryGrid from "@/components/MasteryGrid";
+import ConjugationByTense from "@/components/ConjugationByTense";
 
 export default function WordDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -30,6 +31,7 @@ export default function WordDetailsPage({ params }: { params: Promise<{ id: stri
             translation: data.translation,
             createdAt: data.createdAt?.toDate() || new Date(),
             masteryLevel: data.masteryLevel || 0,
+            mastery: data.mastery || null,
             conjugations: data.conjugations || []
           } as Word);
         } else {
@@ -72,7 +74,7 @@ export default function WordDetailsPage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-8 pt-6">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-40 pt-6">
       <div className="mb-6 flex items-center justify-between">
         <button 
           onClick={() => router.back()} 
@@ -96,6 +98,11 @@ export default function WordDetailsPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
 
+        <div>
+          <h3 className="text-lg font-bold text-feather-text mb-3">Mastery</h3>
+          <MasteryGrid mastery={word.mastery} conjugations={word.conjugations} />
+        </div>
+
         <Button 
           variant="primary" 
           fullWidth 
@@ -106,18 +113,12 @@ export default function WordDetailsPage({ params }: { params: Promise<{ id: stri
           PRACTICE
         </Button>
 
-        <div>
-          <h3 className="text-lg font-bold text-feather-text mb-3">Conjugation Table</h3>
-          {/* 
-            Pass existing conjugations to avoid re-fetching.
-            If conjugations were not saved (legacy words), the component handles fetching.
-          */}
-          <VerbConjugationCard 
-            verb={word.hebrew} 
-            spanishTranslation={word.translation}
-            conjugations={word.conjugations}
-          />
-        </div>
+        {word.conjugations && word.conjugations.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold text-feather-text mb-3">Conjugation Table</h3>
+            <ConjugationByTense conjugations={word.conjugations} />
+          </div>
+        )}
       </div>
     </div>
   );

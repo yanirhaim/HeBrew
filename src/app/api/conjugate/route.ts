@@ -4,7 +4,8 @@ import { getOpenAIClient } from "@/lib/openai";
 
 
 interface ConjugationResponse {
-  spanishTranslation: string;
+  infinitive: string; // Hebrew infinitive form
+  spanishTranslation: string; // Spanish infinitive translation
   conjugations: Conjugation[];
 }
 
@@ -27,13 +28,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const prompt = `You are an expert in Hebrew grammar and conjugation. Conjugate the Hebrew verb "${verb.trim()}" in past (עבר), present (הווה), and future (עתיד) tenses for all 10 pronouns.
+    const prompt = `You are an expert in Hebrew grammar and conjugation. Conjugate the Hebrew verb "${verb.trim()}" in past (עבר), present (הווה), and future (עתיד) tenses for all 10 pronouns. Also return the verb in its infinitive (dictionary) form.
 
-Return the response as a JSON object with this exact structure:
+Return ONLY valid JSON with this exact structure:
 {
-  "spanishTranslation": "Spanish translation of the verb (infinitive form)",
+  "infinitive": "Hebrew infinitive form",
+  "spanishTranslation": "Spanish translation of the infinitive",
   "conjugations": [
     {
+      "pronounCode": "ani",
       "pronoun": "אני (I)",
       "past": "Hebrew past tense",
       "pastTransliteration": "Romanized transliteration",
@@ -46,38 +49,47 @@ Return the response as a JSON object with this exact structure:
       "futureExample": "Example sentence in Hebrew"
     },
     {
+      "pronounCode": "ata_m",
       "pronoun": "אתה (You m.)",
       ...
     },
     {
+      "pronounCode": "at_f",
       "pronoun": "את (You f.)",
       ...
     },
     {
+      "pronounCode": "hu_m",
       "pronoun": "הוא (He)",
       ...
     },
     {
+      "pronounCode": "hi_f",
       "pronoun": "היא (She)",
       ...
     },
     {
+      "pronounCode": "anachnu",
       "pronoun": "אנחנו (We)",
       ...
     },
     {
+      "pronounCode": "atem_m",
       "pronoun": "אתם (You m. pl.)",
       ...
     },
     {
+      "pronounCode": "aten_f",
       "pronoun": "אתן (You f. pl.)",
       ...
     },
     {
+      "pronounCode": "hem_m",
       "pronoun": "הם (They m.)",
       ...
     },
     {
+      "pronounCode": "hen_f",
       "pronoun": "הן (They f.)",
       ...
     }
@@ -88,6 +100,7 @@ Important:
 - Provide accurate Hebrew conjugations
 - Include transliterations using standard Romanization
 - Create natural example sentences in Hebrew for each form
+- Always include pronounCode values exactly from the provided list
 - Return ONLY valid JSON, no additional text or markdown
 - Ensure all 10 pronouns are included`;
 
@@ -134,6 +147,7 @@ Important:
 
     // Validate the response structure
     if (
+      !parsedResponse.infinitive ||
       !parsedResponse.spanishTranslation ||
       !parsedResponse.conjugations ||
       !Array.isArray(parsedResponse.conjugations) ||
@@ -146,6 +160,7 @@ Important:
     }
 
     return NextResponse.json({
+      infinitive: parsedResponse.infinitive,
       spanishTranslation: parsedResponse.spanishTranslation,
       conjugations: parsedResponse.conjugations,
     });

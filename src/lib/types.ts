@@ -4,6 +4,8 @@ export interface PracticeExercise {
   id: string;
   type: "multiple_choice" | "input";
   tense: "past" | "present" | "future";
+  pronounCode?: string; // normalized key (ani, ata_m, at_f, hu_m, hi_f, anachnu, atem_m, aten_f, hem_m, hen_f)
+  pronounLabel?: string; // human-friendly pronoun string (e.g., "אני (I)")
   sentence: string; // The sentence with a blank (e.g., "_____ הלכתי למכולת")
   correctAnswer: string;
   options?: string[]; // For multiple choice
@@ -13,6 +15,7 @@ export interface PracticeExercise {
 
 export interface Conjugation {
   pronoun: string;
+  pronounCode?: string;
   past: string;
   pastTransliteration?: string;
   pastExample?: string;
@@ -24,12 +27,19 @@ export interface Conjugation {
   futureExample?: string;
 }
 
+export type MasteryByTense = {
+  past: Record<string, number>;
+  present: Record<string, number>;
+  future: Record<string, number>;
+};
+
 export interface Word {
   id: string;
   hebrew: string;
   translation: string;
   createdAt: Date;
   masteryLevel?: number;
+  mastery?: MasteryByTense;
   conjugations?: Conjugation[];
 }
 

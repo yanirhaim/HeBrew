@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/Card";
 
 export default function PracticePage() {
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-32 pt-8">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-40 pt-8">
       <h1 className="mb-8 text-center text-3xl font-extrabold text-feather-text">
         Practice
       </h1>

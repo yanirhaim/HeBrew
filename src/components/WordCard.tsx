@@ -17,6 +17,17 @@ export default function WordCard({ word, onClick }: WordCardProps) {
     }
   };
 
+  const averageForTense = (tense: "past" | "present" | "future") => {
+    const scores = word.mastery ? Object.values(word.mastery[tense] || {}) : [];
+    if (!scores.length) return null;
+    const avg = scores.reduce((sum, val) => sum + val, 0) / scores.length;
+    return Math.round(avg);
+  };
+
+  const pastAvg = averageForTense("past");
+  const presentAvg = averageForTense("present");
+  const futureAvg = averageForTense("future");
+
   return (
     <Card 
       onClick={onClick}
@@ -26,6 +37,41 @@ export default function WordCard({ word, onClick }: WordCardProps) {
         {word.hebrew}
       </div>
       <div className="text-base font-bold text-feather-text-light mb-4">{word.translation}</div>
+
+      {(pastAvg !== null || presentAvg !== null || futureAvg !== null) && (
+        <div className="mb-4 flex w-full justify-around px-4 text-xs font-bold text-feather-text-light">
+          <div className="flex flex-col items-center gap-1">
+            <span>Past</span>
+            <div className="h-2 w-12 overflow-hidden rounded-full bg-feather-gray/30">
+              <div
+                className="h-full rounded-full bg-feather-blue"
+                style={{ width: `${pastAvg ?? 0}%` }}
+              />
+            </div>
+            <span>{pastAvg ?? 0}%</span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <span>Present</span>
+            <div className="h-2 w-12 overflow-hidden rounded-full bg-feather-gray/30">
+              <div
+                className="h-full rounded-full bg-feather-green"
+                style={{ width: `${presentAvg ?? 0}%` }}
+              />
+            </div>
+            <span>{presentAvg ?? 0}%</span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <span>Future</span>
+            <div className="h-2 w-12 overflow-hidden rounded-full bg-feather-gray/30">
+              <div
+                className="h-full rounded-full bg-feather-red"
+                style={{ width: `${futureAvg ?? 0}%` }}
+              />
+            </div>
+            <span>{futureAvg ?? 0}%</span>
+          </div>
+        </div>
+      )}
       
       <div className="flex gap-1" dir="ltr">
         {[1, 2, 3, 4, 5].map((level) => (

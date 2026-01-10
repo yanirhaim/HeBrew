@@ -2,13 +2,13 @@
 
 import { useEffect, useState, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { generatePracticeExercises } from "@/lib/openrouter";
-import { PracticeExercise, Conjugation } from "@/lib/types";
+import { generatePracticeExercises, readCachedPracticePayload, cachePracticePayload } from "@/lib/openrouter";
+import { PracticeExercise, Conjugation, MasteryByTense } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import HebrewInput from "@/components/HebrewInput";
 import VerbLearningFlow from "@/components/VerbLearningFlow";
-import { addWord } from "@/lib/firestore";
+import { findWordByHebrew, updatePronounMastery } from "@/lib/firestore";
 
 type Tense = "present" | "past" | "future";
 type Mode = "learn" | "quiz";
@@ -23,6 +23,9 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
   const [isLoading, setIsLoading] = useState(true);
   const [exercises, setExercises] = useState<PracticeExercise[]>([]);
   const [conjugations, setConjugations] = useState<Conjugation[]>([]);
+  const [canonicalVerb, setCanonicalVerb] = useState(verb);
+  const [wordId, setWordId] = useState<string | null>(null);
+  const [mastery, setMastery] = useState<MasteryByTense | null>(null);
   
   // Session State
   const [currentTenseIndex, setCurrentTenseIndex] = useState(0);
@@ -39,6 +42,65 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
 
   const currentTense = TENSE_ORDER[currentTenseIndex];
 
+  const normalizePronounCode = (conjugation: Conjugation, index: number) => {
+    if (conjugation.pronounCode) return conjugation.pronounCode;
+    return (
+      conjugation.pronoun
+        ?.toLowerCase()
+        ?.replace(/[^a-z0-9]+/gi, "_")
+        ?.replace(/^_+|_+$/g, "") || `p_${index}`
+    );
+  };
+
+  const buildEmptyMastery = (items: Conjugation[]): MasteryByTense => {
+    const base: Record<string, number> = {};
+    items.forEach((item, idx) => {
+      const code = normalizePronounCode(item, idx);
+      base[code] = 0;
+    });
+    return {
+      past: { ...base },
+      present: { ...base },
+      future: { ...base },
+    };
+  };
+
+  const loadWordMeta = (canonical: string) => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = sessionStorage.getItem(`word-meta:${canonical}`);
+      if (!raw) return;
+      const meta = JSON.parse(raw);
+      if (meta.wordId) setWordId(meta.wordId);
+      if (meta.mastery) setMastery(meta.mastery);
+    } catch (error) {
+      console.warn("Unable to read word meta", error);
+    }
+  };
+
+  const ensureWordId = async (hebrew: string) => {
+    if (wordId) return wordId;
+    const found = await findWordByHebrew(hebrew);
+    if (found) {
+      setWordId(found.id);
+      if (found.mastery) {
+        setMastery(found.mastery);
+      }
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(
+          `word-meta:${hebrew}`,
+          JSON.stringify({
+            wordId: found.id,
+            translation: found.translation,
+            mastery: found.mastery || null,
+          })
+        );
+      }
+      return found.id;
+    }
+    return null;
+  };
+
   // Filter exercises for the current tense
   const currentTenseExercises = useMemo(() => {
     return exercises.filter(ex => ex.tense === currentTense);
@@ -47,9 +109,28 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
   useEffect(() => {
     const fetchExercises = async () => {
       try {
+        const cached = readCachedPracticePayload(verb);
+        if (cached) {
+          setExercises(cached.exercises);
+          setConjugations(cached.conjugations);
+          setCanonicalVerb(cached.verbInfinitive || verb);
+          loadWordMeta(cached.verbInfinitive || verb);
+          if (!mastery) {
+            setMastery(buildEmptyMastery(cached.conjugations));
+          }
+          setIsLoading(false);
+          return;
+        }
+
         const result = await generatePracticeExercises(verb);
+        cachePracticePayload(result.verbInfinitive || verb, result);
         setExercises(result.exercises);
         setConjugations(result.conjugations);
+        setCanonicalVerb(result.verbInfinitive || verb);
+        loadWordMeta(result.verbInfinitive || verb);
+        if (!mastery) {
+          setMastery(buildEmptyMastery(result.conjugations));
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load exercises");
       } finally {
@@ -61,25 +142,16 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
   }, [verb]);
 
   const handleLearnComplete = async () => {
-    // Save word to database when starting quiz
-    // Only save effectively once per session (e.g. at the first transition to quiz)
-    // or we can let the addWord function handle duplicates if implemented (currently it just adds)
-    // To avoid duplicates, we might want to check if it exists or use setDoc with merge if we had the ID.
-    // For now, we'll blindly add it.
-    
-    // Note: We don't have the translation handy here, so we'll use a placeholder or empty string.
-    // Ideally, the generatePracticeExercises should return the translation of the verb itself.
-    try {
-        await addWord(verb, ""); 
-    } catch (e) {
-        console.error("Error saving word on quiz start:", e);
-    }
-
     setCurrentMode("quiz");
     setCurrentExerciseIndex(0);
   };
 
-  const handleCheck = () => {
+  const computeNextScore = (current: number, correct: boolean) => {
+    const delta = correct ? 15 : -10;
+    return Math.max(0, Math.min(100, current + delta));
+  };
+
+  const handleCheck = async () => {
     if (!userInput.trim()) return;
 
     const currentExercise = currentTenseExercises[currentExerciseIndex];
@@ -90,6 +162,33 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
       setScore((prev) => prev + 1);
     }
     setShowFeedback(true);
+
+    // Update mastery per pronoun/tense
+    const pronounCode = currentExercise.pronounCode;
+    if (pronounCode) {
+      const nextScore = computeNextScore(
+        mastery?.[currentTense]?.[pronounCode] ?? 0,
+        correct
+      );
+
+      setMastery((prev) => {
+        const base = prev ?? buildEmptyMastery(conjugations);
+        return {
+          ...base,
+          [currentTense]: {
+            ...base[currentTense],
+            [pronounCode]: nextScore,
+          },
+        };
+      });
+
+      const resolvedWordId = wordId ?? (await ensureWordId(canonicalVerb));
+      if (resolvedWordId) {
+        updatePronounMastery(resolvedWordId, currentTense, pronounCode, nextScore).catch(
+          (err) => console.warn("Failed to update mastery", err)
+        );
+      }
+    }
   };
 
   const handleNextExercise = () => {
@@ -157,7 +256,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
   // --- LEARN MODE ---
   if (currentMode === "learn") {
     return (
-        <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-8 pt-6">
+        <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-40 pt-6">
               <div className="mb-6 flex items-center justify-between">
                   <button 
                       onClick={() => router.back()} 

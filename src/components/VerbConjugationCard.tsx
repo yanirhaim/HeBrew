@@ -26,23 +26,28 @@ export default function VerbConjugationCard({
 
   // Use provided conjugations if available, otherwise use state
   const displayConjugations = initialConjugations || conjugations;
+  // Explicitly check if conjugations were provided via props (not null/undefined)
+  // If provided via props (even if empty), respect that and don't fetch
+  const hasProvidedConjugations = initialConjugations !== null && initialConjugations !== undefined;
   const hasConjugations = displayConjugations && displayConjugations.length > 0;
 
   const handleToggle = async () => {
-    if (!isOpen && !hasConjugations && !isLoading) {
-      // Only fetch if conjugations weren't provided as props
-      setIsLoading(true);
-      setError(null);
-      try {
-        const result = await conjugateVerb(verb);
-        setConjugations(result.conjugations);
-        setSpanishTranslation(result.spanishTranslation);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to load conjugations";
-        setError(errorMessage);
-      } finally {
-        setIsLoading(false);
+    if (!isOpen && !isLoading) {
+      // Only fetch if conjugations weren't provided via props AND we don't have any conjugations
+      if (!hasProvidedConjugations && !hasConjugations) {
+        setIsLoading(true);
+        setError(null);
+        try {
+          const result = await conjugateVerb(verb);
+          setConjugations(result.conjugations);
+          setSpanishTranslation(result.spanishTranslation);
+        } catch (err) {
+          const errorMessage =
+            err instanceof Error ? err.message : "Failed to load conjugations";
+          setError(errorMessage);
+        } finally {
+          setIsLoading(false);
+        }
       }
     }
     setIsOpen(!isOpen);
