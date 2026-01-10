@@ -55,7 +55,7 @@ export default function MasteryGrid({ mastery, conjugations }: MasteryGridProps)
   if (!mastery) {
     return (
       <div className="rounded-xl border-2 border-feather-gray bg-feather-gray/10 px-4 py-3 text-sm text-feather-text-light">
-        Mastery data will appear after you practice this verb.
+        Los datos de dominio aparecerán después de que practiques este verbo.
       </div>
     );
   }
@@ -70,16 +70,16 @@ export default function MasteryGrid({ mastery, conjugations }: MasteryGridProps)
   return (
     <div className="overflow-hidden rounded-xl border-2 border-feather-gray">
       <div className="border-b-2 border-feather-gray bg-feather-gray/10 px-4 py-3 text-sm font-bold uppercase tracking-wide text-feather-text-light">
-        Mastery by pronoun & tense
+        Dominio por pronombre y tiempo
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="bg-white text-feather-text-light">
-              <th className="px-4 py-3 font-bold">Pronoun</th>
-              <th className="px-4 py-3 font-bold">Past</th>
-              <th className="px-4 py-3 font-bold">Present</th>
-              <th className="px-4 py-3 font-bold">Future</th>
+              <th className="px-4 py-3 font-bold">Pronombre</th>
+              <th className="px-4 py-3 font-bold">Pasado</th>
+              <th className="px-4 py-3 font-bold">Presente</th>
+              <th className="px-4 py-3 font-bold">Futuro</th>
             </tr>
           </thead>
           <tbody>

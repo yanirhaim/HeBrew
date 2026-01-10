@@ -10,8 +10,8 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "HeBrew - Learn Hebrew",
-  description: "Learn Hebrew with conjugation, translation, and practice tools",
+  title: "HeBrew - Aprende Hebreo",
+  description: "Aprende hebreo con herramientas de conjugación, traducción y práctica",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
 
@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body
         className={`${nunito.variable} antialiased`}
       >

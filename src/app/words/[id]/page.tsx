@@ -35,11 +35,11 @@ export default function WordDetailsPage({ params }: { params: Promise<{ id: stri
             conjugations: data.conjugations || []
           } as Word);
         } else {
-          setError("Word not found");
+          setError("Palabra no encontrada");
         }
       } catch (err) {
         console.error("Error fetching word:", err);
-        setError("Failed to load word details");
+        setError("Error al cargar los detalles de la palabra");
       } finally {
         setIsLoading(false);
       }
@@ -66,9 +66,9 @@ export default function WordDetailsPage({ params }: { params: Promise<{ id: stri
     return (
       <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center bg-white px-5">
         <Card className="border-feather-red bg-red-50 text-feather-red mb-6">
-          <div className="font-bold">{error || "Word not found"}</div>
+          <div className="font-bold">{error || "Palabra no encontrada"}</div>
         </Card>
-        <Button onClick={() => router.back()}>Go Back</Button>
+        <Button onClick={() => router.back()}>Volver</Button>
       </div>
     );
   }
@@ -83,7 +83,7 @@ export default function WordDetailsPage({ params }: { params: Promise<{ id: stri
           ✕
         </button>
         <div className="text-sm font-bold uppercase tracking-wide text-feather-text-light">
-          Word Details
+          Detalles de la Palabra
         </div>
         <div className="w-6"></div>
       </div>
@@ -99,7 +99,7 @@ export default function WordDetailsPage({ params }: { params: Promise<{ id: stri
         </div>
 
         <div>
-          <h3 className="text-lg font-bold text-feather-text mb-3">Mastery</h3>
+          <h3 className="text-lg font-bold text-feather-text mb-3">Dominio</h3>
           <MasteryGrid mastery={word.mastery} conjugations={word.conjugations} />
         </div>
 
@@ -110,12 +110,12 @@ export default function WordDetailsPage({ params }: { params: Promise<{ id: stri
           onClick={handlePractice}
           className="mb-8"
         >
-          PRACTICE
+          PRACTICAR
         </Button>
 
         {word.conjugations && word.conjugations.length > 0 && (
           <div>
-            <h3 className="text-lg font-bold text-feather-text mb-3">Conjugation Table</h3>
+            <h3 className="text-lg font-bold text-feather-text mb-3">Tabla de Conjugación</h3>
             <ConjugationByTense conjugations={word.conjugations} />
           </div>
         )}

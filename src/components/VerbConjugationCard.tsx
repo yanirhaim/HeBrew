@@ -43,7 +43,7 @@ export default function VerbConjugationCard({
           setSpanishTranslation(result.spanishTranslation);
         } catch (err) {
           const errorMessage =
-            err instanceof Error ? err.message : "Failed to load conjugations";
+            err instanceof Error ? err.message : "Error al cargar conjugaciones";
           setError(errorMessage);
         } finally {
           setIsLoading(false);
@@ -63,7 +63,7 @@ export default function VerbConjugationCard({
       >
         <div className="flex w-full items-center justify-between">
           <span className="text-sm font-extrabold uppercase tracking-wide text-feather-blue">
-            {isOpen ? "Hide" : "Show"} Conjugation
+            {isOpen ? "Ocultar" : "Mostrar"} Conjugación
           </span>
           <svg
             className={`h-6 w-6 text-feather-blue transition-transform ${
@@ -87,7 +87,7 @@ export default function VerbConjugationCard({
         <div className="p-4 bg-white">
           {isLoading && (
             <div className="py-8 text-center">
-              <div className="mb-4 text-sm font-bold text-feather-text-light">Loading conjugations...</div>
+              <div className="mb-4 text-sm font-bold text-feather-text-light">Cargando conjugaciones...</div>
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-feather-blue border-t-transparent"></div>
             </div>
           )}

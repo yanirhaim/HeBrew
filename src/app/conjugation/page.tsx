@@ -86,7 +86,7 @@ export default function ConjugationPage() {
       }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to conjugate verb";
+        err instanceof Error ? err.message : "Error al conjugar el verbo";
       setError(errorMessage);
       setConjugations([]);
       setSpanishTranslation("");
@@ -99,12 +99,12 @@ export default function ConjugationPage() {
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-40 pt-8">
       <h1 className="mb-8 text-center text-3xl font-extrabold text-feather-text">
-        Conjugation
+        Conjugación
       </h1>
       
       <form onSubmit={handleSubmit} className="mb-8 space-y-4">
         <HebrewInput
-          label="Enter Hebrew verb"
+          label="Ingresa verbo en hebreo"
           placeholder="כתב"
           value={inputValue}
           onChange={(e) => {
@@ -121,7 +121,7 @@ export default function ConjugationPage() {
           fullWidth
           disabled={isLoading}
         >
-          {isLoading ? "Conjugating..." : "Conjugate"}
+          {isLoading ? "Conjugando..." : "Conjugar"}
         </Button>
       </form>
 
@@ -133,7 +133,7 @@ export default function ConjugationPage() {
 
       {isLoading && (
         <div className="py-12 text-center">
-          <div className="mb-4 text-lg font-bold text-feather-text-light">Conjugating verb...</div>
+          <div className="mb-4 text-lg font-bold text-feather-text-light">Conjugando verbo...</div>
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-feather-blue border-t-transparent"></div>
         </div>
       )}
@@ -143,7 +143,7 @@ export default function ConjugationPage() {
           {spanishTranslation && (
             <div className="mb-8 space-y-4">
               <Card className="bg-blue-50 border-feather-blue">
-                <div className="mb-1 text-xs font-bold uppercase tracking-wide text-feather-blue">Translation</div>
+                <div className="mb-1 text-xs font-bold uppercase tracking-wide text-feather-blue">Traducción</div>
                 <div className="text-xl font-bold text-feather-text">{spanishTranslation}</div>
               </Card>
               <Button
@@ -154,7 +154,7 @@ export default function ConjugationPage() {
                   router.push(`/practice/${encodeURIComponent(verbToPractice)}`);
                 }}
               >
-                START PRACTICING
+                EMPEZAR A PRACTICAR
               </Button>
             </div>
           )}
@@ -166,7 +166,7 @@ export default function ConjugationPage() {
         <div className="mt-12 text-center">
            <div className="text-6xl mb-4">🤔</div>
            <p className="text-lg font-bold text-feather-text-light">
-            Enter a verb to see magic happen!
+            ¡Ingresa un verbo para ver la magia!
            </p>
         </div>
       )}

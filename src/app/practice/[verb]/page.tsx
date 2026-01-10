@@ -132,7 +132,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
           setMastery(buildEmptyMastery(result.conjugations));
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load exercises");
+        setError(err instanceof Error ? err.message : "Error al cargar los ejercicios");
       } finally {
         setIsLoading(false);
       }
@@ -216,7 +216,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
   if (isLoading) {
     return (
       <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center bg-white px-5">
-        <div className="mb-4 text-lg font-bold text-feather-text-light">Preparing your lesson...</div>
+        <div className="mb-4 text-lg font-bold text-feather-text-light">Preparando tu lección...</div>
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-feather-blue border-t-transparent"></div>
       </div>
     );
@@ -228,7 +228,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
         <Card className="border-feather-red bg-red-50 text-feather-red mb-6">
           <div className="font-bold">{error}</div>
         </Card>
-        <Button onClick={() => window.location.reload()}>Try Again</Button>
+        <Button onClick={() => window.location.reload()}>Intentar de Nuevo</Button>
       </div>
     );
   }
@@ -238,14 +238,14 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
       <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center bg-white px-5">
         <Card className="w-full text-center py-8 mb-6">
           <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-2xl font-extrabold text-feather-text mb-2">Practice Complete!</h2>
+          <h2 className="text-2xl font-extrabold text-feather-text mb-2">¡Práctica Completa!</h2>
           <p className="text-feather-text-light font-bold mb-6">
-            You scored {score} out of {exercises.length}
+            Obtuviste {score} de {exercises.length}
           </p>
           <div className="space-y-3">
-            <Button fullWidth onClick={() => window.location.reload()}>Practice Again</Button>
+            <Button fullWidth onClick={() => window.location.reload()}>Practicar de Nuevo</Button>
             <Button fullWidth variant="secondary" onClick={() => router.push("/conjugation")}>
-              Back to Conjugation
+              Volver a Conjugación
             </Button>
           </div>
         </Card>
@@ -265,7 +265,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
                       ✕
                   </button>
                   <div className="text-sm font-bold uppercase tracking-wide text-feather-text-light">
-                      Learn: {currentTense}
+                      Aprender: {currentTense === "past" ? "Pasado" : currentTense === "present" ? "Presente" : "Futuro"}
                   </div>
                   <div className="w-6"></div> {/* Spacer for center alignment */}
               </div>
@@ -299,8 +299,8 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
       return (
         <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center bg-white px-5">
            <div className="text-center">
-               <p className="mb-4">No exercises found for {currentTense} tense.</p>
-               <Button onClick={handleNextExercise}>Skip to Next</Button>
+               <p className="mb-4">No se encontraron ejercicios para el tiempo {currentTense === "past" ? "Pasado" : currentTense === "present" ? "Presente" : "Futuro"}.</p>
+               <Button onClick={handleNextExercise}>Saltar al Siguiente</Button>
            </div>
         </div>
       );
@@ -326,10 +326,10 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
 
       <div className="flex-1">
         <h1 className="mb-2 text-2xl font-extrabold text-feather-text text-center capitalize">
-          {currentTense} Quiz
+          Quiz de {currentTense === "past" ? "Pasado" : currentTense === "present" ? "Presente" : "Futuro"}
         </h1>
         <p className="mb-8 text-center text-feather-text-light font-bold text-sm">
-          Fill in the missing word
+          Completa la palabra faltante
         </p>
 
         {/* Question Bubble */}
@@ -386,7 +386,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
                 <HebrewInput
                     value={userInput}
                     onChange={(e) => !showFeedback && setUserInput(e.target.value)}
-                    placeholder="Type the answer..."
+                    placeholder="Escribe la respuesta..."
                     className="text-center text-2xl h-16"
                     disabled={showFeedback}
                 />
@@ -408,7 +408,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
                     <div className={`text-xl font-extrabold mb-1 ${
                         isCorrect ? "text-feather-green" : "text-feather-red"
                     }`}>
-                        {isCorrect ? "Nicely done!" : "Correct answer:"}
+                        {isCorrect ? "¡Bien hecho!" : "Respuesta correcta:"}
                     </div>
                     {!isCorrect && (
                         <div className="text-feather-red font-bold text-lg">
@@ -427,7 +427,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
                 disabled={!userInput}
                 onClick={showFeedback ? handleNextExercise : handleCheck}
             >
-                {showFeedback ? "CONTINUE" : "CHECK"}
+                {showFeedback ? "CONTINUAR" : "VERIFICAR"}
             </Button>
         </div>
       </div>

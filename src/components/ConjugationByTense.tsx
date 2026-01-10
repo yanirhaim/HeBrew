@@ -84,21 +84,21 @@ export default function ConjugationByTense({ conjugations }: ConjugationByTenseP
   return (
     <div className="space-y-6">
       <TenseGroup 
-        title="Past Tense (עבר)" 
+        title="Tiempo Pasado (עבר)" 
         tenseKey="past" 
         conjugations={conjugations}
         colorClass="text-feather-blue"
         bgColorClass="bg-blue-50" 
       />
       <TenseGroup 
-        title="Present Tense (הווה)" 
+        title="Tiempo Presente (הווה)" 
         tenseKey="present" 
         conjugations={conjugations} 
         colorClass="text-feather-green"
         bgColorClass="bg-green-50"
       />
       <TenseGroup 
-        title="Future Tense (עתיד)" 
+        title="Tiempo Futuro (עתיד)" 
         tenseKey="future" 
         conjugations={conjugations} 
         colorClass="text-feather-red"

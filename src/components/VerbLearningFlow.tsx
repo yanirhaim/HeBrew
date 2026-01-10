@@ -36,7 +36,7 @@ export default function VerbLearningFlow({ conjugations, tense, onComplete }: Ve
       {/* Tense Title */}
       <div className="flex justify-center mb-6">
           <div className="px-4 py-2 rounded-xl text-sm font-bold uppercase tracking-wide bg-feather-blue text-white shadow-md">
-            {tense} Tense
+            Tiempo {tense === "past" ? "Pasado" : tense === "present" ? "Presente" : "Futuro"}
           </div>
       </div>
 
@@ -61,7 +61,7 @@ export default function VerbLearningFlow({ conjugations, tense, onComplete }: Ve
             onClick={handlePrev}
             disabled={currentIndex === 0}
         >
-            PREV
+            ANTERIOR
         </Button>
         
         {currentIndex === totalItems - 1 ? (
@@ -70,7 +70,7 @@ export default function VerbLearningFlow({ conjugations, tense, onComplete }: Ve
                 className="flex-1"
                 onClick={onComplete}
              >
-                 START QUIZ
+                 EMPEZAR QUIZ
              </Button>
         ) : (
             <Button
@@ -78,7 +78,7 @@ export default function VerbLearningFlow({ conjugations, tense, onComplete }: Ve
                 className="flex-1"
                 onClick={handleNext}
             >
-                NEXT
+                SIGUIENTE
             </Button>
         )}
       </div>
@@ -90,7 +90,7 @@ export default function VerbLearningFlow({ conjugations, tense, onComplete }: Ve
                 onClick={onComplete}
                 className="text-sm font-bold text-feather-text-light hover:text-feather-blue uppercase tracking-wide"
               >
-                  Skip to Quiz
+                  Saltar al Quiz
               </button>
           </div>
       )}

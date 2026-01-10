@@ -32,7 +32,7 @@ export async function conjugateVerb(
 
     if (!response.ok) {
       const errorData: ConjugationError = await response.json();
-      throw new Error(errorData.error || "Failed to conjugate verb");
+      throw new Error(errorData.error || "Error al conjugar el verbo");
     }
 
     const data: ConjugationApiResponse = await response.json();
@@ -41,7 +41,7 @@ export async function conjugateVerb(
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error("Unknown error occurred while conjugating verb");
+    throw new Error("Error desconocido al conjugar el verbo");
   }
 }
 
@@ -68,7 +68,7 @@ export async function translateText(
 
     if (!response.ok) {
       const errorData: ConjugationError = await response.json();
-      throw new Error(errorData.error || "Failed to translate text");
+      throw new Error(errorData.error || "Error al traducir el texto");
     }
 
     const data: TranslationApiResponse = await response.json();
@@ -77,7 +77,7 @@ export async function translateText(
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error("Unknown error occurred while translating text");
+    throw new Error("Error desconocido al traducir el texto");
   }
 }
 
@@ -95,7 +95,7 @@ export async function generatePracticeExercises(
 
     if (!response.ok) {
       const errorData: ConjugationError = await response.json();
-      throw new Error(errorData.error || "Failed to generate exercises");
+      throw new Error(errorData.error || "Error al generar ejercicios");
     }
 
     const data: PracticeApiResponse = await response.json();
@@ -104,7 +104,7 @@ export async function generatePracticeExercises(
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error("Unknown error occurred while generating exercises");
+    throw new Error("Error desconocido al generar ejercicios");
   }
 }
 

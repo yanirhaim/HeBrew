@@ -42,7 +42,7 @@ export default function TranslationPage() {
       setConjugations(result.conjugations);
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to translate text";
+        err instanceof Error ? err.message : "Error al traducir el texto";
       setError(errorMessage);
       setTranslation("");
       setIsVerb(false);
@@ -57,7 +57,7 @@ export default function TranslationPage() {
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-40 pt-8">
       <h1 className="mb-8 text-center text-3xl font-extrabold text-feather-text">
-        Translation
+        Traducción
       </h1>
 
       <div className="mb-6 flex gap-3">
@@ -67,7 +67,7 @@ export default function TranslationPage() {
           className="flex-1"
           size="sm"
         >
-          Hebrew → Spanish
+          Hebreo → Español
         </Button>
         <Button
           onClick={() => setDirection("es-to-he")}
@@ -75,13 +75,13 @@ export default function TranslationPage() {
           className="flex-1"
           size="sm"
         >
-          Spanish → Hebrew
+          Español → Hebreo
         </Button>
       </div>
 
       <form onSubmit={handleSubmit} className="mb-8 space-y-4">
         <HebrewInput
-          label={direction === "he-to-es" ? "Enter Hebrew text" : "Enter Spanish text"}
+          label={direction === "he-to-es" ? "Ingresa texto en hebreo" : "Ingresa texto en español"}
           placeholder={direction === "he-to-es" ? "שלום" : "Hola"}
           dir={direction === "he-to-es" ? "rtl" : "ltr"}
           value={inputValue}
@@ -99,7 +99,7 @@ export default function TranslationPage() {
           fullWidth
           disabled={isLoading}
         >
-          {isLoading ? "Translating..." : "Translate"}
+          {isLoading ? "Traduciendo..." : "Traducir"}
         </Button>
       </form>
 
@@ -111,7 +111,7 @@ export default function TranslationPage() {
 
       {isLoading && (
         <div className="py-12 text-center">
-          <div className="mb-4 text-lg font-bold text-feather-text-light">Translating...</div>
+          <div className="mb-4 text-lg font-bold text-feather-text-light">Traduciendo...</div>
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-feather-blue border-t-transparent"></div>
         </div>
       )}
@@ -119,7 +119,7 @@ export default function TranslationPage() {
       {!isLoading && translation && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Card className="mb-4 bg-blue-50 border-feather-blue">
-            <div className="mb-1 text-xs font-bold uppercase tracking-wide text-feather-blue">Translation</div>
+            <div className="mb-1 text-xs font-bold uppercase tracking-wide text-feather-blue">Traducción</div>
             <div
               className="text-xl font-bold text-feather-text"
               dir={direction === "he-to-es" ? "ltr" : "rtl"}
@@ -142,7 +142,7 @@ export default function TranslationPage() {
         <div className="mt-12 text-center">
            <div className="text-6xl mb-4">🌍</div>
            <p className="text-lg font-bold text-feather-text-light">
-            Ready to translate!
+            ¡Listo para traducir!
            </p>
         </div>
       )}

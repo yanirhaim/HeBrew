@@ -14,21 +14,21 @@ export default function VerbLearningCard({ conjugation, tense }: VerbLearningCar
           hebrew: conjugation.past,
           transliteration: conjugation.pastTransliteration || "",
           example: conjugation.pastExample || "",
-          title: "Past Tense (עבר)",
+          title: "Tiempo Pasado (עבר)",
         };
       case "present":
         return {
           hebrew: conjugation.present,
           transliteration: conjugation.presentTransliteration || "",
           example: conjugation.presentExample || "",
-          title: "Present Tense (הווה)",
+          title: "Tiempo Presente (הווה)",
         };
       case "future":
         return {
           hebrew: conjugation.future,
           transliteration: conjugation.futureTransliteration || "",
           example: conjugation.futureExample || "",
-          title: "Future Tense (עתיד)",
+          title: "Tiempo Futuro (עתיד)",
         };
     }
   };

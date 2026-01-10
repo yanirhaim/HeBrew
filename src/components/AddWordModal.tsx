@@ -23,7 +23,7 @@ export default function AddWordModal({ isOpen, onClose }: AddWordModalProps) {
     if (!hebrew || !translation) return;
 
     setIsLoading(true);
-    setStatusMessage("CONJUGATING...");
+    setStatusMessage("CONJUGANDO...");
     
     let conjugations = null;
     
@@ -44,7 +44,7 @@ export default function AddWordModal({ isOpen, onClose }: AddWordModalProps) {
       }
       
       // 2. Then save to database
-      setStatusMessage("SAVING...");
+      setStatusMessage("GUARDANDO...");
       await addWord(hebrew, translation, conjugations || undefined);
       
       setHebrew("");
@@ -63,14 +63,14 @@ export default function AddWordModal({ isOpen, onClose }: AddWordModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
         <div className="bg-feather-blue px-6 py-4">
-          <h2 className="text-xl font-bold text-white">Add New Word</h2>
+          <h2 className="text-xl font-bold text-white">Agregar Nueva Palabra</h2>
         </div>
         
         <form onSubmit={handleSubmit} className="p-6">
           <div className="space-y-4">
             <div>
               <label htmlFor="hebrew" className="mb-1 block text-sm font-bold text-feather-text">
-                Hebrew
+                Hebreo
               </label>
               <input
                 id="hebrew"
@@ -86,7 +86,7 @@ export default function AddWordModal({ isOpen, onClose }: AddWordModalProps) {
             
             <div>
               <label htmlFor="translation" className="mb-1 block text-sm font-bold text-feather-text">
-                Translation
+                Traducción
               </label>
               <input
                 id="translation"
@@ -94,7 +94,7 @@ export default function AddWordModal({ isOpen, onClose }: AddWordModalProps) {
                 value={translation}
                 onChange={(e) => setTranslation(e.target.value)}
                 className="w-full rounded-xl border-2 border-feather-gray bg-feather-gray/10 px-4 py-2 text-lg font-medium text-feather-text focus:border-feather-blue focus:bg-white focus:outline-none"
-                placeholder="Word"
+                placeholder="Palabra"
               />
             </div>
           </div>
@@ -107,7 +107,7 @@ export default function AddWordModal({ isOpen, onClose }: AddWordModalProps) {
               onClick={onClose}
               disabled={isLoading}
             >
-              CANCEL
+              CANCELAR
             </Button>
             <Button
               type="submit"
@@ -115,7 +115,7 @@ export default function AddWordModal({ isOpen, onClose }: AddWordModalProps) {
               className="flex-1"
               disabled={isLoading || !hebrew || !translation}
             >
-              {isLoading ? statusMessage : "SAVE"}
+              {isLoading ? statusMessage : "GUARDAR"}
             </Button>
           </div>
         </form>

@@ -41,7 +41,7 @@ export default function WordCard({ word, onClick }: WordCardProps) {
       {(pastAvg !== null || presentAvg !== null || futureAvg !== null) && (
         <div className="mb-4 flex w-full justify-around px-4 text-xs font-bold text-feather-text-light">
           <div className="flex flex-col items-center gap-1">
-            <span>Past</span>
+            <span>Pasado</span>
             <div className="h-2 w-12 overflow-hidden rounded-full bg-feather-gray/30">
               <div
                 className="h-full rounded-full bg-feather-blue"
@@ -51,7 +51,7 @@ export default function WordCard({ word, onClick }: WordCardProps) {
             <span>{pastAvg ?? 0}%</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <span>Present</span>
+            <span>Presente</span>
             <div className="h-2 w-12 overflow-hidden rounded-full bg-feather-gray/30">
               <div
                 className="h-full rounded-full bg-feather-green"
@@ -61,7 +61,7 @@ export default function WordCard({ word, onClick }: WordCardProps) {
             <span>{presentAvg ?? 0}%</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <span>Future</span>
+            <span>Futuro</span>
             <div className="h-2 w-12 overflow-hidden rounded-full bg-feather-gray/30">
               <div
                 className="h-full rounded-full bg-feather-red"
@@ -79,7 +79,7 @@ export default function WordCard({ word, onClick }: WordCardProps) {
             key={level}
             onClick={(e) => handleStarClick(e, level)}
             className="focus:outline-none transition-transform active:scale-125 hover:scale-110"
-            aria-label={`Set mastery to ${level}`}
+            aria-label={`Establecer dominio en ${level}`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
