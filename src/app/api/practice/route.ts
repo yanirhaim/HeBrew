@@ -40,13 +40,13 @@ Return ONLY valid JSON with this structure:
       "pronounCode": "ani",
       "pronoun": "אני (I)",
       "past": "Hebrew past tense",
-      "pastTransliteration": "Romanized transliteration",
+      "pastTransliteration": "Spanish pronunciation phonetics",
       "pastExample": "Example sentence in Hebrew",
       "present": "Hebrew present tense",
-      "presentTransliteration": "Romanized transliteration",
+      "presentTransliteration": "Spanish pronunciation phonetics",
       "presentExample": "Example sentence in Hebrew",
       "future": "Hebrew future tense",
-      "futureTransliteration": "Romanized transliteration",
+      "futureTransliteration": "Spanish pronunciation phonetics",
       "futureExample": "Example sentence in Hebrew"
     },
     ... (all 10 pronouns with pronounCode from: ani, ata_m, at_f, hu_m, hi_f, anachnu, atem_m, aten_f, hem_m, hen_f)
@@ -83,6 +83,7 @@ Important:
 - Tag each exercise with its "tense" ("past", "present", or "future") and "pronounCode" from the allowed list.
 - Sentences should be natural and correct.
 - Distractors for multiple choice should be plausible.
+- Use Spanish pronunciation phonetics for transliterations (e.g., 'j' as in Spanish 'juego', 'ch' as in Spanish 'chico', vowels pronounced as in Spanish, 'r' and 'rr' follow Spanish pronunciation rules).
 - Return ONLY valid JSON.`;
 
     const openai = getOpenAIClient();

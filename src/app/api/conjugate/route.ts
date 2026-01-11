@@ -39,13 +39,13 @@ Return ONLY valid JSON with this exact structure:
       "pronounCode": "ani",
       "pronoun": "אני (I)",
       "past": "Hebrew past tense",
-      "pastTransliteration": "Romanized transliteration",
+      "pastTransliteration": "Spanish pronunciation phonetics",
       "pastExample": "Example sentence in Hebrew",
       "present": "Hebrew present tense",
-      "presentTransliteration": "Romanized transliteration",
+      "presentTransliteration": "Spanish pronunciation phonetics",
       "presentExample": "Example sentence in Hebrew",
       "future": "Hebrew future tense",
-      "futureTransliteration": "Romanized transliteration",
+      "futureTransliteration": "Spanish pronunciation phonetics",
       "futureExample": "Example sentence in Hebrew"
     },
     {
@@ -98,7 +98,7 @@ Return ONLY valid JSON with this exact structure:
 
 Important:
 - Provide accurate Hebrew conjugations
-- Include transliterations using standard Romanization
+- Include transliterations using Spanish pronunciation phonetics (e.g., 'j' as in Spanish 'juego', 'ch' as in Spanish 'chico', vowels pronounced as in Spanish, 'r' and 'rr' follow Spanish pronunciation rules)
 - Create natural example sentences in Hebrew for each form
 - Always include pronounCode values exactly from the provided list
 - Return ONLY valid JSON, no additional text or markdown

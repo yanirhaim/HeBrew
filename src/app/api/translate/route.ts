@@ -58,13 +58,13 @@ Return a JSON object with this structure:
     {
       "pronoun": "אני (I)",
       "past": "Hebrew past tense",
-      "pastTransliteration": "Romanized transliteration",
+      "pastTransliteration": "Spanish pronunciation phonetics",
       "pastExample": "Example sentence in Hebrew",
       "present": "Hebrew present tense",
-      "presentTransliteration": "Romanized transliteration",
+      "presentTransliteration": "Spanish pronunciation phonetics",
       "presentExample": "Example sentence in Hebrew",
       "future": "Hebrew future tense",
-      "futureTransliteration": "Romanized transliteration",
+      "futureTransliteration": "Spanish pronunciation phonetics",
       "futureExample": "Example sentence in Hebrew"
     },
     {
@@ -109,7 +109,7 @@ Return a JSON object with this structure:
 Important:
 - If the Hebrew word is a verb, set "isVerb" to true and provide ALL fields including conjugations for all 10 pronouns
 - If it's not a verb, set "isVerb" to false and omit "verbForm", "spanishTranslation", and "conjugations"
-- Provide accurate Hebrew conjugations with transliterations and example sentences
+- Provide accurate Hebrew conjugations with transliterations using Spanish pronunciation phonetics (e.g., 'j' as in Spanish 'juego', 'ch' as in Spanish 'chico', vowels pronounced as in Spanish, 'r' and 'rr' follow Spanish pronunciation rules) and example sentences
 - Return ONLY valid JSON, no additional text or markdown`
       : `Translate the following Spanish text to Hebrew: "${text.trim()}"
 
@@ -129,13 +129,13 @@ Return a JSON object with this structure:
     {
       "pronoun": "אני (I)",
       "past": "Hebrew past tense",
-      "pastTransliteration": "Romanized transliteration",
+      "pastTransliteration": "Spanish pronunciation phonetics",
       "pastExample": "Example sentence in Hebrew",
       "present": "Hebrew present tense",
-      "presentTransliteration": "Romanized transliteration",
+      "presentTransliteration": "Spanish pronunciation phonetics",
       "presentExample": "Example sentence in Hebrew",
       "future": "Hebrew future tense",
-      "futureTransliteration": "Romanized transliteration",
+      "futureTransliteration": "Spanish pronunciation phonetics",
       "futureExample": "Example sentence in Hebrew"
     },
     ... (all 10 pronouns)
@@ -145,7 +145,7 @@ Return a JSON object with this structure:
 Important:
 - If the Spanish word is a verb and the Hebrew translation is also a verb, set "isVerb" to true and provide ALL fields including conjugations for all 10 pronouns
 - If it's not a verb, set "isVerb" to false and omit "verbForm", "spanishTranslation", and "conjugations"
-- Provide accurate Hebrew conjugations with transliterations and example sentences
+- Provide accurate Hebrew conjugations with transliterations using Spanish pronunciation phonetics (e.g., 'j' as in Spanish 'juego', 'ch' as in Spanish 'chico', vowels pronounced as in Spanish, 'r' and 'rr' follow Spanish pronunciation rules) and example sentences
 - Return ONLY valid JSON, no additional text or markdown`;
 
     const openai = getOpenAIClient();
