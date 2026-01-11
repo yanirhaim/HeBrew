@@ -10,6 +10,7 @@
     "test:models": "tsx tests/model-benchmark.test.ts"
   },
   "dependencies": {
+    "@google-cloud/text-to-speech": "^6.4.0",
     "firebase": "^12.7.0",
     "next": "16.1.1",
     "openai": "^6.15.0",

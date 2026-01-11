@@ -104,11 +104,44 @@ const PracticeIcon = ({ isActive }: { isActive: boolean }) => (
   </svg>
 );
 
+const ReadingIcon = ({ isActive }: { isActive: boolean }) => (
+  <svg
+    width="28"
+    height="28"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"
+      stroke={isActive ? ACTIVE_COLOR : INACTIVE_COLOR}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+      stroke={isActive ? ACTIVE_COLOR : INACTIVE_COLOR}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill={isActive ? `${ACTIVE_COLOR}20` : "none"}
+    />
+    <path
+      d="M8 7h8M8 11h8M8 15h4"
+      stroke={isActive ? ACTIVE_COLOR : INACTIVE_COLOR}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
 const navItems = [
   { path: "/conjugation", icon: ConjugationIcon },
   { path: "/translation", icon: TranslationIcon },
   { path: "/words", icon: WordsIcon },
   { path: "/practice", icon: PracticeIcon },
+  { path: "/reading", icon: ReadingIcon },
 ];
 
 export default function BottomNav() {

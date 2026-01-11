@@ -1,12 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { VocabularyWord } from "@/lib/types";
 import { getOpenAIClient } from "@/lib/openai";
+import { getAllWords } from "@/lib/firestore";
 
-
-interface TranslationResponse {
-  translation: string;
+interface ReadingResponse {
+  text: string;
+  translation?: string;
   vocabularyWords: VocabularyWord[];
+  usedWords?: Array<{
+    hebrew: string;
+    translation: string;
+    id: string;
+  }>;
 }
+
+const LENGTH_GUIDELINES = {
+  short: "50-100 words",
+  medium: "100-200 words",
+  long: "200-300 words"
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,28 +30,47 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { text, direction } = body;
+    const { length } = body;
 
-    if (!text || typeof text !== "string" || text.trim().length === 0) {
+    if (!length || typeof length !== "string" || !["short", "medium", "long"].includes(length)) {
       return NextResponse.json(
-        { error: "Invalid text. Please provide text to translate." },
+        { error: "Invalid length. Must be 'short', 'medium', or 'long'." },
         { status: 400 }
       );
     }
 
-    if (direction !== "he-to-es" && direction !== "es-to-he") {
-      return NextResponse.json(
-        { error: "Invalid direction. Must be 'he-to-es' or 'es-to-he'." },
-        { status: 400 }
-      );
+    // Fetch all words from database
+    let words: Array<{ hebrew: string; translation: string; id: string }> = [];
+    try {
+      const allWords = await getAllWords();
+      words = allWords.map(w => ({
+        hebrew: w.hebrew,
+        translation: w.translation,
+        id: w.id
+      }));
+    } catch (error) {
+      console.error("Error fetching words:", error);
+      // Continue even if fetching words fails - we can still generate reading with new words
     }
 
-    const isHebrewToSpanish = direction === "he-to-es";
-    
-    const prompt = isHebrewToSpanish
-      ? `Translate the following Hebrew text to Spanish: "${text.trim()}"
+    const wordListText = words.length > 0
+      ? `Here are some Hebrew words from the user's vocabulary (prefer using these when possible):
+${words.map(w => `- ${w.hebrew} (${w.translation})`).join("\n")}`
+      : "The user has no words in their vocabulary yet.";
 
-Extract ALL vocabulary words from this text (verbs, nouns, adjectives, adverbs, and other important words).
+    const wordCount = LENGTH_GUIDELINES[length as keyof typeof LENGTH_GUIDELINES];
+
+    const prompt = `Create a natural Hebrew reading text for language practice.
+
+${wordListText}
+
+Instructions:
+1. Create a natural, engaging Hebrew text (story, article, dialogue, or narrative)
+2. The text should be approximately ${wordCount} long
+3. Prefer using words from the vocabulary list above when possible, but feel free to add NEW words to make the text natural and educational
+4. The text should be appropriate for language learning (clear, well-structured, contextually rich)
+
+After creating the text, extract ALL vocabulary words from it (verbs, nouns, adjectives, adverbs, and other important words).
 
 For each vocabulary word, identify:
 - For verbs: Extract the infinitive/base form of the Hebrew verb (e.g., לכתב, לאכול)
@@ -47,6 +78,7 @@ For each vocabulary word, identify:
 
 Return a JSON object with this exact structure:
 {
+  "text": "The Hebrew reading text",
   "translation": "Full Spanish translation of the entire text",
   "vocabularyWords": [
     {
@@ -78,42 +110,6 @@ Important:
 - Use Spanish pronunciation phonetics (e.g., 'j' as in Spanish 'juego', 'ch' as in Spanish 'chico', vowels pronounced as in Spanish, 'r' and 'rr' follow Spanish pronunciation rules)
 - Word types must be one of: "verb", "noun", "adjective", "adverb", "other"
 - Include only words that are useful for vocabulary learning (skip common words like articles, prepositions unless they're important)
-- Return ONLY valid JSON, no additional text or markdown`
-      : `Translate the following Spanish text to Hebrew: "${text.trim()}"
-
-Extract ALL vocabulary words from the Hebrew translation (verbs, nouns, adjectives, adverbs, and other important words).
-
-For each vocabulary word, identify:
-- For verbs: Extract the infinitive/base form of the Hebrew verb (e.g., לכתב, לאכול)
-- For all words: Provide Hebrew text, Spanish translation, phonetic transliteration using Spanish pronunciation rules, and word type
-
-Return a JSON object with this exact structure:
-{
-  "translation": "Full Hebrew translation of the entire text",
-  "vocabularyWords": [
-    {
-      "hebrew": "לכתב",
-      "translation": "escribir",
-      "phonetic": "lijtov",
-      "wordType": "verb",
-      "infinitive": "לכתב"
-    },
-    {
-      "hebrew": "יפה",
-      "translation": "hermoso",
-      "phonetic": "iafe",
-      "wordType": "adjective"
-    }
-  ]
-}
-
-Important:
-- Extract ALL important vocabulary words from the Hebrew translation
-- For verbs, the "hebrew" field should be the infinitive form (with למ prefix when appropriate)
-- For verbs, the "infinitive" field should be the same as "hebrew"
-- Use Spanish pronunciation phonetics (e.g., 'j' as in Spanish 'juego', 'ch' as in Spanish 'chico', vowels pronounced as in Spanish, 'r' and 'rr' follow Spanish pronunciation rules)
-- Word types must be one of: "verb", "noun", "adjective", "adverb", "other"
-- Include only words that are useful for vocabulary learning (skip common words like articles, prepositions unless they're important)
 - Return ONLY valid JSON, no additional text or markdown`;
 
     const openai = getOpenAIClient();
@@ -123,7 +119,7 @@ Important:
         {
           role: "system",
           content:
-            "You are a Hebrew-English translation expert. Always respond with valid JSON only, no markdown, no code blocks, just pure JSON.",
+            "You are a Hebrew language expert and educational content creator. Always respond with valid JSON only, no markdown, no code blocks, just pure JSON.",
         },
         {
           role: "user",
@@ -131,8 +127,8 @@ Important:
         },
       ],
       response_format: { type: "json_object" },
-      temperature: 0.3,
-      max_tokens: 3000,
+      temperature: 0.7,
+      max_tokens: 4000,
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -153,7 +149,11 @@ Important:
       cleanedContent = cleanedContent.substring(firstBrace, lastBrace + 1);
     }
 
-    let parsedResponse: TranslationResponse;
+    let parsedResponse: {
+      text: string;
+      translation?: string;
+      vocabularyWords: VocabularyWord[];
+    };
     try {
       parsedResponse = JSON.parse(cleanedContent);
     } catch (parseError) {
@@ -165,9 +165,9 @@ Important:
       );
     }
 
-    if (!parsedResponse.translation) {
+    if (!parsedResponse.text) {
       return NextResponse.json(
-        { error: "Invalid response structure from AI model" },
+        { error: "Invalid response structure: missing 'text' field" },
         { status: 500 }
       );
     }
@@ -197,9 +197,16 @@ Important:
       }
     }
 
+    // Identify which words from vocabularyWords were already in the database
+    const usedWords = words.filter(w => 
+      parsedResponse.vocabularyWords.some(vw => vw.hebrew === w.hebrew)
+    );
+
     return NextResponse.json({
-      translation: parsedResponse.translation,
+      text: parsedResponse.text,
+      translation: parsedResponse.translation || undefined,
       vocabularyWords: parsedResponse.vocabularyWords || [],
+      usedWords: usedWords.length > 0 ? usedWords : undefined,
     });
   } catch (error: any) {
     console.error("Error calling OpenRouter:", error);
@@ -220,7 +227,7 @@ Important:
 
     return NextResponse.json(
       {
-        error: "Failed to translate. Please try again.",
+        error: "Failed to generate reading. Please try again.",
         details: error.message,
       },
       { status: 500 }

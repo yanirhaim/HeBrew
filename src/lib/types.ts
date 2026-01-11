@@ -48,3 +48,11 @@ export interface TranslationResult {
   translated: string;
   direction: "he-to-es" | "es-to-he";
 }
+
+export interface VocabularyWord {
+  hebrew: string;           // Hebrew word (infinitive for verbs)
+  translation: string;      // Spanish translation
+  phonetic?: string;        // Spanish phonetic transliteration
+  wordType: "verb" | "noun" | "adjective" | "adverb" | "other";
+  infinitive?: string;      // For verbs, same as hebrew (already infinitive)
+}

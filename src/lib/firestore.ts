@@ -132,3 +132,26 @@ export const updatePronounMastery = async (
     throw error;
   }
 };
+
+export const getAllWords = async (): Promise<Word[]> => {
+  try {
+    const q = query(collection(db, COLLECTION_NAME), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    
+    return snapshot.docs.map((docSnap) => {
+      const data = docSnap.data();
+      return {
+        id: docSnap.id,
+        hebrew: data.hebrew,
+        translation: data.translation,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        masteryLevel: data.masteryLevel || 0,
+        mastery: data.mastery || null,
+        conjugations: data.conjugations || []
+      } as Word;
+    });
+  } catch (error) {
+    console.error("Error fetching all words:", error);
+    throw error;
+  }
+};

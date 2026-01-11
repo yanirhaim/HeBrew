@@ -1,23 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import HebrewInput from "@/components/HebrewInput";
-import VerbConjugationCard from "@/components/VerbConjugationCard";
-import { translateText } from "@/lib/openrouter";
+import VocabularyFlashcard from "@/components/VocabularyFlashcard";
+import { translateText, conjugateVerb } from "@/lib/openrouter";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Conjugation } from "@/lib/types";
+import { VocabularyWord, Conjugation, MasteryByTense } from "@/lib/types";
+import { addWord, findWordByHebrew } from "@/lib/firestore";
 
 export default function TranslationPage() {
   const [inputValue, setInputValue] = useState("");
   const [translation, setTranslation] = useState("");
   const [direction, setDirection] = useState<"he-to-es" | "es-to-he">("he-to-es");
-  const [isVerb, setIsVerb] = useState(false);
-  const [verbForm, setVerbForm] = useState<string | null>(null);
-  const [spanishTranslation, setSpanishTranslation] = useState<string | null>(null);
-  const [conjugations, setConjugations] = useState<Conjugation[] | null>(null);
+  const [vocabularyWords, setVocabularyWords] = useState<VocabularyWord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [addingWords, setAddingWords] = useState<Set<string>>(new Set()); // Track words being added (loading)
+  const [addedWords, setAddedWords] = useState<Set<string>>(new Set()); // Track words already in database
+
+  const normalizePronounCode = (conjugation: Conjugation, fallbackIndex: number) => {
+    if (conjugation.pronounCode) return conjugation.pronounCode;
+    return (
+      conjugation.pronoun
+        ?.toLowerCase()
+        ?.replace(/[^a-z0-9]+/gi, "_")
+        ?.replace(/^_+|_+$/g, "") || `p_${fallbackIndex}`
+    );
+  };
+
+  const buildEmptyMastery = (items: Conjugation[]): MasteryByTense => {
+    const base: Record<string, number> = {};
+    items.forEach((item, idx) => {
+      const code = normalizePronounCode(item, idx);
+      base[code] = 0;
+    });
+    return {
+      past: { ...base },
+      present: { ...base },
+      future: { ...base },
+    };
+  };
+
+  const checkWordsInDatabase = useCallback(async () => {
+    if (vocabularyWords.length === 0) return;
+
+    const wordsToCheck = vocabularyWords.map((word) => ({
+      word,
+      key: `${word.hebrew}-${word.translation}`,
+    }));
+
+    const checkPromises = wordsToCheck.map(async ({ word, key }) => {
+      const found = await findWordByHebrew(word.hebrew);
+      return { key, exists: found !== null };
+    });
+
+    const results = await Promise.all(checkPromises);
+    
+    const existingKeys = new Set(
+      results.filter((r) => r.exists).map((r) => r.key)
+    );
+    
+    setAddedWords(existingKeys);
+  }, [vocabularyWords]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +70,8 @@ export default function TranslationPage() {
 
     if (!inputValue.trim()) {
       setTranslation("");
-      setIsVerb(false);
-      setVerbForm(null);
-      setSpanishTranslation(null);
-      setConjugations(null);
+      setVocabularyWords([]);
+      setAddedWords(new Set());
       return;
     }
 
@@ -36,23 +79,85 @@ export default function TranslationPage() {
     try {
       const result = await translateText(inputValue.trim(), direction);
       setTranslation(result.translation);
-      setIsVerb(result.isVerb);
-      setVerbForm(result.verbForm);
-      setSpanishTranslation(result.spanishTranslation);
-      setConjugations(result.conjugations);
+      setVocabularyWords(result.vocabularyWords || []);
+      // Reset added words - will be checked in useEffect
+      setAddedWords(new Set());
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Error al traducir el texto";
       setError(errorMessage);
       setTranslation("");
-      setIsVerb(false);
-      setVerbForm(null);
-      setSpanishTranslation(null);
-      setConjugations(null);
+      setVocabularyWords([]);
+      setAddedWords(new Set());
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleAddToVocabulary = async (word: VocabularyWord) => {
+    const wordKey = `${word.hebrew}-${word.translation}`;
+    
+    // Prevent duplicate additions
+    if (addingWords.has(wordKey) || addedWords.has(wordKey)) {
+      return;
+    }
+
+    setAddingWords(prev => new Set(prev).add(wordKey));
+    
+    try {
+      if (word.wordType === "verb") {
+        // ONLY FOR VERBS: Conjugate first, then save with conjugations and mastery
+        const verbToConjugate = word.infinitive || word.hebrew;
+        try {
+          const conjugationResult = await conjugateVerb(verbToConjugate);
+          
+          if (conjugationResult && conjugationResult.conjugations && conjugationResult.conjugations.length > 0) {
+            // Build empty mastery structure for all pronouns
+            const mastery = buildEmptyMastery(conjugationResult.conjugations);
+            
+            // Save verb with conjugations and mastery
+            await addWord(
+              conjugationResult.infinitive,
+              conjugationResult.spanishTranslation,
+              conjugationResult.conjugations,
+              mastery
+            );
+          } else {
+            // If conjugation failed, save verb without conjugations as fallback
+            await addWord(word.hebrew, word.translation, undefined);
+          }
+        } catch (conjugationError) {
+          console.warn("Could not conjugate verb, saving without conjugations:", conjugationError);
+          // Save verb anyway without conjugations if conjugation fails
+          await addWord(word.hebrew, word.translation, undefined);
+        }
+      } else {
+        // FOR NON-VERBS (noun, adjective, adverb, other): Save directly without conjugations
+        // We do NOT conjugate nouns, adjectives, adverbs, or other word types
+        await addWord(word.hebrew, word.translation, undefined);
+      }
+      
+      // Mark as added on success
+      setAddedWords(prev => new Set(prev).add(wordKey));
+    } catch (err) {
+      console.error("Failed to add word to vocabulary:", err);
+      setError("Error al agregar palabra al vocabulario");
+    } finally {
+      // Remove from loading state
+      setAddingWords(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(wordKey);
+        return newSet;
+      });
+    }
+  };
+
+  // Check words in database when vocabularyWords changes
+  useEffect(() => {
+    if (vocabularyWords.length > 0) {
+      checkWordsInDatabase();
+    }
+  }, [vocabularyWords, checkWordsInDatabase]);
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-40 pt-8">
@@ -128,12 +233,27 @@ export default function TranslationPage() {
             </div>
           </Card>
 
-          {isVerb && verbForm && (
-            <VerbConjugationCard 
-              verb={verbForm} 
-              spanishTranslation={spanishTranslation}
-              conjugations={conjugations}
-            />
+          {vocabularyWords.length > 0 ? (
+            <div className="space-y-4">
+              {vocabularyWords.map((word, index) => {
+                const wordKey = `${word.hebrew}-${word.translation}`;
+                return (
+                  <VocabularyFlashcard
+                    key={index}
+                    word={word}
+                    onAddToVocabulary={handleAddToVocabulary}
+                    isAdding={addingWords.has(wordKey)}
+                    isAdded={addedWords.has(wordKey)}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <Card className="mt-4 p-6 text-center">
+              <div className="text-sm font-bold text-feather-text-light">
+                No se encontraron palabras de vocabulario para mostrar
+              </div>
+            </Card>
           )}
         </div>
       )}

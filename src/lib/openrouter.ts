@@ -1,4 +1,4 @@
-import { Conjugation, PracticeExercise } from "./types";
+import { Conjugation, PracticeExercise, VocabularyWord } from "./types";
 
 export interface ConjugationApiResponse {
   infinitive: string;
@@ -47,10 +47,18 @@ export async function conjugateVerb(
 
 export interface TranslationApiResponse {
   translation: string;
-  isVerb: boolean;
-  verbForm: string | null;
-  spanishTranslation: string | null;
-  conjugations: Conjugation[] | null;
+  vocabularyWords: VocabularyWord[];
+}
+
+export interface ReadingApiResponse {
+  text: string;
+  translation?: string;
+  vocabularyWords: VocabularyWord[];
+  usedWords?: Array<{
+    hebrew: string;
+    translation: string;
+    id: string;
+  }>;
 }
 
 export async function translateText(
@@ -136,6 +144,63 @@ export function readCachedPracticePayload(verb: string): PracticeApiResponse | n
     console.warn("Unable to read cached practice payload", error);
   }
   return null;
+}
+
+export async function generateReading(
+  length: "short" | "medium" | "long"
+): Promise<ReadingApiResponse> {
+  try {
+    const response = await fetch("/api/reading", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ length }),
+    });
+
+    if (!response.ok) {
+      const errorData: ConjugationError = await response.json();
+      throw new Error(errorData.error || "Error al generar lectura");
+    }
+
+    const data: ReadingApiResponse = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Error desconocido al generar lectura");
+  }
+}
+
+export interface TextToSpeechApiResponse {
+  audioContent: string; // Base64-encoded audio
+  audioEncoding: string;
+}
+
+export async function textToSpeech(text: string): Promise<TextToSpeechApiResponse> {
+  try {
+    const response = await fetch("/api/text-to-speech", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text }),
+    });
+
+    if (!response.ok) {
+      const errorData: ConjugationError = await response.json();
+      throw new Error(errorData.error || "Error al generar audio");
+    }
+
+    const data: TextToSpeechApiResponse = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Error desconocido al generar audio");
+  }
 }
 
 export async function fetchConjugationAndPractice(verb: string) {
