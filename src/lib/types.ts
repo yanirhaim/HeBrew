@@ -33,6 +33,16 @@ export type MasteryByTense = {
   future: Record<string, number>;
 };
 
+export interface Mistake {
+  id: string;
+  wordId: string;
+  type: "gender" | "pattern" | "pronunciation" | "vocabulary";
+  userAnswer: string;
+  correctAnswer: string;
+  timestamp: Date;
+  context?: string; // Sentence where the mistake happened
+}
+
 export interface Word {
   id: string;
   hebrew: string;
@@ -41,6 +51,9 @@ export interface Word {
   masteryLevel?: number;
   mastery?: MasteryByTense;
   conjugations?: Conjugation[];
+  nextReviewDate?: Date;
+  consecutiveCorrect?: number;
+  errorCount?: number;
 }
 
 export interface TranslationResult {

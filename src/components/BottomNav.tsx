@@ -137,11 +137,10 @@ const ReadingIcon = ({ isActive }: { isActive: boolean }) => (
 );
 
 const navItems = [
-  { path: "/conjugation", icon: ConjugationIcon },
-  { path: "/translation", icon: TranslationIcon },
-  { path: "/words", icon: WordsIcon },
   { path: "/practice", icon: PracticeIcon },
+  { path: "/translation", icon: TranslationIcon },
   { path: "/reading", icon: ReadingIcon },
+  { path: "/verbs", icon: WordsIcon },
 ];
 
 export default function BottomNav() {
