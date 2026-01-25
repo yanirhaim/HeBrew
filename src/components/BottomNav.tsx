@@ -136,8 +136,28 @@ const ReadingIcon = ({ isActive }: { isActive: boolean }) => (
   </svg>
 );
 
+const FlashcardsIcon = ({ isActive }: { isActive: boolean }) => (
+  <svg
+    width="28"
+    height="28"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
+      stroke={isActive ? ACTIVE_COLOR : INACTIVE_COLOR}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill={isActive ? `${ACTIVE_COLOR}20` : "none"}
+    />
+  </svg>
+);
+
 const navItems = [
   { path: "/practice", icon: PracticeIcon },
+  { path: "/flashcards", icon: FlashcardsIcon },
   { path: "/translation", icon: TranslationIcon },
   { path: "/reading", icon: ReadingIcon },
   { path: "/verbs", icon: WordsIcon },
