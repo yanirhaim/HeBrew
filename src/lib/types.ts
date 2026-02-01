@@ -2,15 +2,16 @@
 
 export interface PracticeExercise {
   id: string;
-  type: "multiple_choice" | "input";
+  type: "multiple_choice" | "input" | "flashcard";
   tense: "past" | "present" | "future";
   pronounCode?: string; // normalized key (ani, ata_m, at_f, hu_m, hi_f, anachnu, atem_m, aten_f, hem_m, hen_f)
   pronounLabel?: string; // human-friendly pronoun string (e.g., "אני (I)")
-  sentence: string; // The sentence with a blank (e.g., "_____ הלכתי למכולת")
+  sentence: string; // The sentence with a blank (e.g., "_____ הלכתי למכולת") or Hebrew word for flashcards
   correctAnswer: string;
-  options?: string[]; // For multiple choice
-  translation: string; // Spanish translation of the sentence
+  options?: string[]; // For multiple choice and flashcards
+  translation: string; // Spanish translation of the sentence or word
   hint?: string;
+  wordId?: string; // For flashcards
 }
 
 export interface Conjugation {
