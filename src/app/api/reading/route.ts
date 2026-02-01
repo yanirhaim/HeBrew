@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { VocabularyWord } from "@/lib/types";
 import { getOpenAIClient } from "@/lib/openai";
-import { getAllWords } from "@/lib/firestore";
+import { convexClient } from "@/lib/convex-server";
+import { api } from "../../../convex/_generated/api";
 
 interface ReadingResponse {
   text: string;
@@ -42,11 +43,11 @@ export async function POST(request: NextRequest) {
     // Fetch all words from database
     let words: Array<{ hebrew: string; translation: string; id: string }> = [];
     try {
-      const allWords = await getAllWords();
+      const allWords = await convexClient.query(api.words.list);
       words = allWords.map(w => ({
         hebrew: w.hebrew,
         translation: w.translation,
-        id: w.id
+        id: w._id,
       }));
     } catch (error) {
       console.error("Error fetching words:", error);

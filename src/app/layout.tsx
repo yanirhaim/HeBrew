@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
+import { ConvexClientProvider } from "./ConvexClientProvider";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -25,10 +26,12 @@ export default function RootLayout({
       <body
         className={`${nunito.variable} antialiased`}
       >
-        <div className="min-h-screen bg-white">
-          {children}
-          <BottomNav />
-        </div>
+        <ConvexClientProvider>
+          <div className="min-h-screen bg-white">
+            {children}
+            <BottomNav />
+          </div>
+        </ConvexClientProvider>
       </body>
     </html>
   );

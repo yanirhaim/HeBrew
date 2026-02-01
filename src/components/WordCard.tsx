@@ -1,6 +1,10 @@
+"use client";
+
 import { Word } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
-import { updateWordMastery } from "@/lib/firestore";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { Id } from "../../convex/_generated/dataModel";
 
 interface WordCardProps {
   word: Word;
@@ -8,10 +12,15 @@ interface WordCardProps {
 }
 
 export default function WordCard({ word, onClick }: WordCardProps) {
+  const updateMastery = useMutation(api.words.updateMastery);
+
   const handleStarClick = async (e: React.MouseEvent, level: number) => {
     e.stopPropagation();
     try {
-      await updateWordMastery(word.id, level);
+      await updateMastery({
+        id: word.id as Id<"words">,
+        level,
+      });
     } catch (error) {
       console.error("Failed to update mastery:", error);
     }

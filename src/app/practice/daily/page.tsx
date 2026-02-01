@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { Id } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import VoiceInput from "@/components/VoiceInput";
-import { getDailyWords, updateWordProgress } from "@/lib/firestore";
 import { Word } from "@/lib/types";
+import { convexWordToWord } from "@/lib/convex-helpers";
 
 interface DailyPracticeData {
   scenarioTitle: string;
@@ -38,18 +41,28 @@ export default function DailyPracticePage() {
   const [userTranscript, setUserTranscript] = useState("");
   const [stats, setStats] = useState({ correct: 0, total: 0 });
 
+  const dailyWordsData = useQuery(api.words.getDailyWords);
+  const updateProgress = useMutation(api.words.updateProgress);
+
   useEffect(() => {
     async function init() {
+      if (!dailyWordsData) return; // Still loading
+
       try {
         // 1. Fetch Words
-        const { newWords, reviewWords, weakWords } = await getDailyWords();
+        const { newWords, reviewWords, weakWords } = dailyWordsData;
+        // Convert Convex documents to Word type
+        const newWordsConverted = newWords.map(convexWordToWord);
+        const reviewWordsConverted = reviewWords.map(convexWordToWord);
+        const weakWordsConverted = weakWords.map(convexWordToWord);
+        
         // Combine (limit to ~10 words total for a session to keep it manageable)
-        const combined = [...weakWords, ...reviewWords, ...newWords].slice(0, 10);
+        const combined = [...weakWordsConverted, ...reviewWordsConverted, ...newWordsConverted].slice(0, 10);
         
         console.log("Daily words fetched:", { 
-          newWords: newWords.length, 
-          reviewWords: reviewWords.length, 
-          weakWords: weakWords.length,
+          newWords: newWordsConverted.length, 
+          reviewWords: reviewWordsConverted.length, 
+          weakWords: weakWordsConverted.length,
           combined: combined.length 
         });
         
@@ -82,7 +95,7 @@ export default function DailyPracticePage() {
     }
 
     init();
-  }, [router]);
+  }, [router, dailyWordsData]);
 
   const handleVoiceResult = (text: string) => {
     setUserTranscript(text);
@@ -116,10 +129,10 @@ export default function DailyPracticePage() {
     // Update progress
     const currentWord = words[currentWordIndex];
     if (currentWord && feedback === "correct") {
-       await updateWordProgress(currentWord.id, true);
+       await updateProgress({ id: currentWord.id as Id<"words">, isCorrect: true });
        setStats(s => ({ ...s, correct: s.correct + 1, total: s.total + 1 }));
     } else if (currentWord) {
-       await updateWordProgress(currentWord.id, false);
+       await updateProgress({ id: currentWord.id as Id<"words">, isCorrect: false });
        setStats(s => ({ ...s, total: s.total + 1 }));
     }
 

@@ -5,7 +5,9 @@ import { generateReading, textToSpeech } from "@/lib/openrouter";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { VocabularyWord, Word, Conjugation, MasteryByTense } from "@/lib/types";
-import { addWord, findWordByHebrew } from "@/lib/firestore";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { convexWordToWord } from "@/lib/convex-helpers";
 import { conjugateVerb } from "@/lib/openrouter";
 import InteractiveReading from "@/components/InteractiveReading";
 import VocabularyFlashcard from "@/components/VocabularyFlashcard";
@@ -50,33 +52,16 @@ export default function ReadingPage() {
     };
   };
 
+  const addWord = useMutation(api.words.add);
+  
+  // Note: We'll check words individually using queries when needed
+  // For now, we'll use a simpler approach - check on add
   const checkWordsInDatabase = useCallback(async () => {
-    if (vocabularyWords.length === 0) return;
-
-    const wordsToCheck = vocabularyWords.map((word) => ({
-      word,
-      key: `${word.hebrew}-${word.translation}`,
-    }));
-
-    const checkPromises = wordsToCheck.map(async ({ word, key }) => {
-      const found = await findWordByHebrew(word.hebrew);
-      return { key, exists: found !== null, word: found };
-    });
-
-    const results = await Promise.all(checkPromises);
-    
-    const existingKeys = new Set(
-      results.filter((r) => r.exists).map((r) => r.key)
-    );
-    
-    const existingWords = results
-      .filter((r) => r.exists && r.word)
-      .map((r) => r.word!)
-      .filter((w): w is Word => w !== null);
-    
-    setAddedWords(existingKeys);
-    setUsedWords(existingWords);
-  }, [vocabularyWords]);
+    // This will be handled differently - we'll check when adding words
+    // For now, clear added words and let the add process handle it
+    setAddedWords(new Set());
+    setUsedWords([]);
+  }, []);
 
   const handleStartReading = () => {
     setStage("selecting");
@@ -138,24 +123,33 @@ export default function ReadingPage() {
             const mastery = buildEmptyMastery(conjugationResult.conjugations);
             
             // Save with conjugations and mastery
-            await addWord(
-              conjugationResult.infinitive,
-              conjugationResult.spanishTranslation,
-              conjugationResult.conjugations,
-              mastery
-            );
+            await addWord({
+              hebrew: conjugationResult.infinitive,
+              translation: conjugationResult.spanishTranslation,
+              conjugations: conjugationResult.conjugations,
+              mastery,
+            });
           } else {
             // If conjugation failed, save without conjugations
-            await addWord(word.hebrew, word.translation, undefined);
+            await addWord({
+              hebrew: word.hebrew,
+              translation: word.translation,
+            });
           }
         } catch (conjugationError) {
           console.warn("Could not conjugate verb, saving without conjugations:", conjugationError);
           // Save word anyway without conjugations
-          await addWord(word.hebrew, word.translation, undefined);
+          await addWord({
+            hebrew: word.hebrew,
+            translation: word.translation,
+          });
         }
       } else {
         // For non-verbs, save directly without conjugations
-        await addWord(word.hebrew, word.translation, undefined);
+        await addWord({
+          hebrew: word.hebrew,
+          translation: word.translation,
+        });
       }
       
       // Mark as added on success

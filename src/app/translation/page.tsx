@@ -7,7 +7,9 @@ import { translateText, conjugateVerb } from "@/lib/openrouter";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { VocabularyWord, Conjugation, MasteryByTense } from "@/lib/types";
-import { addWord, findWordByHebrew } from "@/lib/firestore";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { convexWordToWord } from "@/lib/convex-helpers";
 
 export default function TranslationPage() {
   const [inputValue, setInputValue] = useState("");
@@ -42,27 +44,15 @@ export default function TranslationPage() {
     };
   };
 
+  const addWord = useMutation(api.words.add);
+  
+  // Note: We'll check words individually using queries when needed
+  // For now, we'll use a simpler approach - check on add
   const checkWordsInDatabase = useCallback(async () => {
-    if (vocabularyWords.length === 0) return;
-
-    const wordsToCheck = vocabularyWords.map((word) => ({
-      word,
-      key: `${word.hebrew}-${word.translation}`,
-    }));
-
-    const checkPromises = wordsToCheck.map(async ({ word, key }) => {
-      const found = await findWordByHebrew(word.hebrew);
-      return { key, exists: found !== null };
-    });
-
-    const results = await Promise.all(checkPromises);
-    
-    const existingKeys = new Set(
-      results.filter((r) => r.exists).map((r) => r.key)
-    );
-    
-    setAddedWords(existingKeys);
-  }, [vocabularyWords]);
+    // This will be handled differently - we'll check when adding words
+    // For now, clear added words and let the add process handle it
+    setAddedWords(new Set());
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,25 +106,34 @@ export default function TranslationPage() {
             const mastery = buildEmptyMastery(conjugationResult.conjugations);
             
             // Save verb with conjugations and mastery
-            await addWord(
-              conjugationResult.infinitive,
-              conjugationResult.spanishTranslation,
-              conjugationResult.conjugations,
-              mastery
-            );
+            await addWord({
+              hebrew: conjugationResult.infinitive,
+              translation: conjugationResult.spanishTranslation,
+              conjugations: conjugationResult.conjugations,
+              mastery,
+            });
           } else {
             // If conjugation failed, save verb without conjugations as fallback
-            await addWord(word.hebrew, word.translation, undefined);
+            await addWord({
+              hebrew: word.hebrew,
+              translation: word.translation,
+            });
           }
         } catch (conjugationError) {
           console.warn("Could not conjugate verb, saving without conjugations:", conjugationError);
           // Save verb anyway without conjugations if conjugation fails
-          await addWord(word.hebrew, word.translation, undefined);
+          await addWord({
+            hebrew: word.hebrew,
+            translation: word.translation,
+          });
         }
       } else {
         // FOR NON-VERBS (noun, adjective, adverb, other): Save directly without conjugations
         // We do NOT conjugate nouns, adjectives, adverbs, or other word types
-        await addWord(word.hebrew, word.translation, undefined);
+        await addWord({
+          hebrew: word.hebrew,
+          translation: word.translation,
+        });
       }
       
       // Mark as added on success

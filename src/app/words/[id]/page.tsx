@@ -1,52 +1,24 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { Id } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Word } from "@/lib/types";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { convexWordToWord } from "@/lib/convex-helpers";
 import MasteryGrid from "@/components/MasteryGrid";
 import ConjugationByTense from "@/components/ConjugationByTense";
 
 export default function WordDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = use(params);
-  const [word, setWord] = useState<Word | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchWord = async () => {
-      try {
-        const docRef = doc(db, "words", id);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setWord({
-            id: docSnap.id,
-            hebrew: data.hebrew,
-            translation: data.translation,
-            createdAt: data.createdAt?.toDate() || new Date(),
-            masteryLevel: data.masteryLevel || 0,
-            mastery: data.mastery || null,
-            conjugations: data.conjugations || []
-          } as Word);
-        } else {
-          setError("Palabra no encontrada");
-        }
-      } catch (err) {
-        console.error("Error fetching word:", err);
-        setError("Error al cargar los detalles de la palabra");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchWord();
-  }, [id]);
+  const convexWord = useQuery(api.words.getById, { id: id as Id<"words"> });
+  const isLoading = convexWord === undefined;
+  const error = convexWord === null ? "Palabra no encontrada" : null;
+  const word: Word | null = convexWord ? convexWordToWord(convexWord) : null;
 
   const handlePractice = () => {
     if (word) {

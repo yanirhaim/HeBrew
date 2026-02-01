@@ -8,7 +8,8 @@ import { Conjugation, MasteryByTense } from "@/lib/types";
 import { cachePracticePayload, fetchConjugationAndPractice } from "@/lib/openrouter";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { addWord } from "@/lib/firestore";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 export default function ConjugationPage() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function ConjugationPage() {
   const [canonicalVerb, setCanonicalVerb] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const addWord = useMutation(api.words.add);
 
   const normalizePronounCode = (conjugation: Conjugation, fallbackIndex: number) => {
     if (conjugation.pronounCode) return conjugation.pronounCode;
@@ -66,12 +68,12 @@ export default function ConjugationPage() {
 
       // Save verb immediately with conjugations + zeroed mastery
       const mastery = buildEmptyMastery(conjugation.conjugations);
-      const wordId = await addWord(
-        conjugation.infinitive,
-        conjugation.spanishTranslation,
-        conjugation.conjugations,
-        mastery
-      );
+      const wordId = await addWord({
+        hebrew: conjugation.infinitive,
+        translation: conjugation.spanishTranslation,
+        conjugations: conjugation.conjugations,
+        mastery,
+      });
 
       // Cache practice payload and word metadata for the practice page
       if (typeof window !== "undefined") {

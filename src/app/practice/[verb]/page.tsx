@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import HebrewInput from "@/components/HebrewInput";
 import VerbLearningFlow from "@/components/VerbLearningFlow";
-import { findWordByHebrew, updatePronounMastery } from "@/lib/firestore";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { Id } from "../../../convex/_generated/dataModel";
+import { convexWordToWord } from "@/lib/convex-helpers";
 
 type Tense = "present" | "past" | "future";
 type Mode = "learn" | "quiz";
@@ -26,6 +29,9 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
   const [canonicalVerb, setCanonicalVerb] = useState(verb);
   const [wordId, setWordId] = useState<string | null>(null);
   const [mastery, setMastery] = useState<MasteryByTense | null>(null);
+
+  const foundWord = useQuery(api.words.getByHebrew, { hebrew: verb });
+  const updatePronounMastery = useMutation(api.words.updatePronounMastery);
   
   // Session State
   const [currentTenseIndex, setCurrentTenseIndex] = useState(0);
@@ -78,25 +84,32 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
     }
   };
 
-  const ensureWordId = async (hebrew: string) => {
-    if (wordId) return wordId;
-    const found = await findWordByHebrew(hebrew);
-    if (found) {
-      setWordId(found.id);
-      if (found.mastery) {
-        setMastery(found.mastery);
+  // Update wordId and mastery when foundWord changes
+  useEffect(() => {
+    if (foundWord && !wordId) {
+      const word = convexWordToWord(foundWord);
+      setWordId(word.id);
+      if (word.mastery) {
+        setMastery(word.mastery);
       }
       if (typeof window !== "undefined") {
         sessionStorage.setItem(
-          `word-meta:${hebrew}`,
+          `word-meta:${verb}`,
           JSON.stringify({
-            wordId: found.id,
-            translation: found.translation,
-            mastery: found.mastery || null,
+            wordId: word.id,
+            translation: word.translation,
+            mastery: word.mastery || null,
           })
         );
       }
-      return found.id;
+    }
+  }, [foundWord, wordId, verb]);
+
+  const ensureWordId = async (hebrew: string) => {
+    if (wordId) return wordId;
+    if (foundWord) {
+      const word = convexWordToWord(foundWord);
+      return word.id;
     }
     return null;
   };
@@ -184,7 +197,12 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
 
       const resolvedWordId = wordId ?? (await ensureWordId(canonicalVerb));
       if (resolvedWordId) {
-        updatePronounMastery(resolvedWordId, currentTense, pronounCode, nextScore).catch(
+        updatePronounMastery({
+          id: resolvedWordId as Id<"words">,
+          tense: currentTense,
+          pronounCode,
+          score: nextScore,
+        }).catch(
           (err) => console.warn("Failed to update mastery", err)
         );
       }

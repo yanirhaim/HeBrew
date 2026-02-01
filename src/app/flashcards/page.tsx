@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { subscribeToWords } from "@/lib/firestore";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { convexWordToWord } from "@/lib/convex-helpers";
 import { Word, Conjugation } from "@/lib/types";
 import Link from "next/link";
 
@@ -81,19 +83,16 @@ export default function FlashcardsPage() {
     const inputRef = useRef<HTMLInputElement>(null);
 
     // --- Initialize ---
+    const convexWords = useQuery(api.words.list);
+    
     useEffect(() => {
-        const unsubscribe = subscribeToWords(
-            (fetchedWords) => {
-                const validWords = fetchedWords.filter(w => w.hebrew && w.translation);
-                setWords(validWords);
-                setGameState("start");
-            },
-            (err) => {
-                console.error("Failed to fetch words:", err);
-            }
-        );
-        return () => unsubscribe();
-    }, []);
+        if (convexWords !== undefined) {
+            const fetchedWords = convexWords.map(convexWordToWord);
+            const validWords = fetchedWords.filter(w => w.hebrew && w.translation);
+            setWords(validWords);
+            setGameState("start");
+        }
+    }, [convexWords]);
 
     // --- Game Logic ---
     const generateCards = (sourceWords: Word[]): GameCard[] => {

@@ -1,35 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import WordCard from "@/components/WordCard";
 import EmptyState from "@/components/EmptyState";
 import { Word } from "@/lib/types";
-import { subscribeToWords } from "@/lib/firestore";
+import { convexWordToWord } from "@/lib/convex-helpers";
 
 export default function WordsPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [words, setWords] = useState<Word[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = subscribeToWords(
-      (updatedWords) => {
-        setWords(updatedWords);
-        setIsLoading(false);
-        setError(null);
-      },
-      (err) => {
-        console.error("Subscription error:", err);
-        setError("Error al conectar con la base de datos. Por favor, verifica tu conexión a internet o permisos.");
-        setIsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, []);
+  const convexWords = useQuery(api.words.list);
+  const isLoading = convexWords === undefined;
+  const error = convexWords === null ? "Error al conectar con la base de datos. Por favor, verifica tu conexión a internet o permisos." : null;
+  
+  const words: Word[] = convexWords ? convexWords.map(convexWordToWord) : [];
 
   const filteredWords = words.filter(
     (word) =>

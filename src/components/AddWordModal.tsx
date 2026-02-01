@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { addWord } from "@/lib/firestore";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { conjugateVerb, translateText } from "@/lib/openrouter";
 
 interface AddWordModalProps {
@@ -14,6 +15,7 @@ export default function AddWordModal({ isOpen, onClose }: AddWordModalProps) {
   const [hebrew, setHebrew] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+  const addWord = useMutation(api.words.add);
 
   if (!isOpen) return null;
 
@@ -44,7 +46,11 @@ export default function AddWordModal({ isOpen, onClose }: AddWordModalProps) {
     }
     
     // 3. Save to database
-    await addWord(hebrewWord, translation, conjugations || undefined);
+    await addWord({
+      hebrew: hebrewWord,
+      translation,
+      conjugations: conjugations || undefined,
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
