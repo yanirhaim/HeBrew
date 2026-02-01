@@ -10,7 +10,7 @@ import HebrewInput from "@/components/HebrewInput";
 import VerbLearningFlow from "@/components/VerbLearningFlow";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
+import { Id } from "convex/_generated/dataModel";
 import { convexWordToWord } from "@/lib/convex-helpers";
 
 type Tense = "present" | "past" | "future";

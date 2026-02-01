@@ -1,5 +1,5 @@
 import { Word } from "./types";
-import { Doc } from "../../convex/_generated/dataModel";
+import { Doc } from "convex/_generated/dataModel";
 
 /**
  * Convert a Convex word document to the Word type used by components
