@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "convex/_generated/api";
@@ -40,15 +40,24 @@ export default function DailyPracticePage() {
   const [feedback, setFeedback] = useState<"none" | "correct" | "incorrect">("none");
   const [userTranscript, setUserTranscript] = useState("");
   const [stats, setStats] = useState({ correct: 0, total: 0 });
+  
+  // Track if initialization has already happened to prevent re-initialization on Convex refetches
+  const initializedRef = useRef(false);
 
   const dailyWordsData = useQuery(api.words.getDailyWords);
   const updateProgress = useMutation(api.words.updateProgress);
 
   useEffect(() => {
+    // Only initialize once, even if dailyWordsData refetches
+    if (initializedRef.current) return;
+    
     async function init() {
       if (!dailyWordsData) return; // Still loading
 
       try {
+        // Mark as initialized before starting to prevent race conditions
+        initializedRef.current = true;
+        
         // 1. Fetch Words
         const { newWords, reviewWords, weakWords } = dailyWordsData;
         // Convert Convex documents to Word type
@@ -89,6 +98,8 @@ export default function DailyPracticePage() {
         setPhase("intro");
       } catch (error) {
         console.error("Error initializing daily practice:", error);
+        // Reset initialization flag on error so user can retry
+        initializedRef.current = false;
         alert("Error loading practice. Please try again.");
         router.push("/practice");
       }
@@ -101,7 +112,10 @@ export default function DailyPracticePage() {
     setUserTranscript(text);
     // Simple verification logic (can be improved with fuzzy matching)
     // We check if the target word is in the transcript
-    const currentItem = practiceData?.wordPractice[currentWordIndex];
+    if (!practiceData?.wordPractice || currentWordIndex >= practiceData.wordPractice.length) {
+      return;
+    }
+    const currentItem = practiceData.wordPractice[currentWordIndex];
     if (!currentItem) return;
 
     // Normalize: remove vowels/punctuation for check if possible, but for now simple check
@@ -126,6 +140,12 @@ export default function DailyPracticePage() {
   };
 
   const handleNextWord = async () => {
+    // Safety check: ensure we have valid data
+    if (!practiceData?.wordPractice || currentWordIndex >= practiceData.wordPractice.length) {
+      console.error("Invalid state in handleNextWord");
+      return;
+    }
+    
     // Update progress
     const currentWord = words[currentWordIndex];
     if (currentWord && feedback === "correct") {
@@ -139,7 +159,7 @@ export default function DailyPracticePage() {
     setFeedback("none");
     setUserTranscript("");
 
-    if (currentWordIndex < (practiceData?.wordPractice.length || 0) - 1) {
+    if (currentWordIndex < practiceData.wordPractice.length - 1) {
       setCurrentWordIndex(prev => prev + 1);
     } else {
       setPhase("dialogue");
@@ -148,8 +168,8 @@ export default function DailyPracticePage() {
 
   if (phase === "loading") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="text-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 pt-safe pb-32">
+        <div className="text-center px-5">
           <div className="mb-4 text-6xl animate-bounce">🤖</div>
           <h2 className="text-xl font-bold text-gray-700">Preparando tu misión diaria...</h2>
           <p className="text-gray-500">Seleccionando palabras y generando escenario.</p>
@@ -160,8 +180,8 @@ export default function DailyPracticePage() {
 
   if (phase === "intro" && practiceData) {
     return (
-      <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pt-8 pb-10">
-        <h1 className="text-3xl font-extrabold text-feather-text mb-2 text-center">Misión Diaria</h1>
+      <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pt-safe pb-32">
+        <h1 className="text-3xl font-extrabold text-feather-text mb-2 text-center mt-8">Misión Diaria</h1>
         <Card className="p-6 bg-blue-50 border-blue-100 mb-8">
             <h2 className="text-xl font-bold text-blue-800 mb-2">{practiceData.scenarioTitle}</h2>
             <p className="text-blue-600 text-lg">{practiceData.scenarioContext}</p>
@@ -178,7 +198,7 @@ export default function DailyPracticePage() {
             </div>
         </div>
 
-        <div className="mt-auto">
+        <div className="mt-auto mb-6">
             <Button variant="primary" size="lg" fullWidth onClick={() => setPhase("practice")}>
                 Comenzar Entrenamiento
             </Button>
@@ -188,13 +208,27 @@ export default function DailyPracticePage() {
   }
 
   if (phase === "practice" && practiceData) {
+    // Safety check: ensure currentWordIndex is valid
+    if (!practiceData.wordPractice || currentWordIndex >= practiceData.wordPractice.length) {
+      return (
+        <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center bg-white px-5 pt-safe pb-32">
+          <div className="text-center">
+            <p className="text-lg text-gray-600 mb-4">Error: Ejercicio no encontrado</p>
+            <Button variant="primary" onClick={() => router.push("/practice")}>
+              Volver al Inicio
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    
     const item = practiceData.wordPractice[currentWordIndex];
     const progress = ((currentWordIndex + 1) / practiceData.wordPractice.length) * 100;
 
     return (
-      <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pt-8 pb-10">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pt-safe pb-32">
         {/* Progress Bar */}
-        <div className="mb-6 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+        <div className="mb-6 h-2 w-full overflow-hidden rounded-full bg-gray-100 mt-8">
           <div 
             className="h-full bg-feather-blue transition-all duration-300"
             style={{ width: `${progress}%` }}
@@ -240,7 +274,7 @@ export default function DailyPracticePage() {
                 </div>
             )}
 
-            <div className="mt-6">
+            <div className="mt-6 mb-6">
                 {feedback === "correct" ? (
                     <Button variant="primary" size="lg" fullWidth onClick={handleNextWord}>
                         ¡Excelente! Siguiente
@@ -261,8 +295,8 @@ export default function DailyPracticePage() {
 
   if (phase === "dialogue" && practiceData) {
       return (
-          <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pt-8 pb-10">
-              <h1 className="text-2xl font-bold text-center mb-6">Escenario Final</h1>
+          <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pt-safe pb-32">
+              <h1 className="text-2xl font-bold text-center mb-6 mt-8">Escenario Final</h1>
               <p className="text-center text-gray-500 mb-8">Lee este diálogo en voz alta.</p>
               
               <div className="space-y-6 flex-1">
@@ -282,16 +316,18 @@ export default function DailyPracticePage() {
                   ))}
               </div>
 
-              <Button variant="primary" size="lg" fullWidth onClick={() => setPhase("summary")}>
-                  Terminar Entrenamiento
-              </Button>
+              <div className="mb-6">
+                <Button variant="primary" size="lg" fullWidth onClick={() => setPhase("summary")}>
+                    Terminar Entrenamiento
+                </Button>
+              </div>
           </div>
       );
   }
 
   if (phase === "summary") {
       return (
-          <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center bg-white px-5 text-center">
+          <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center bg-white px-5 text-center pt-safe pb-32">
               <div className="text-6xl mb-6">🎉</div>
               <h1 className="text-3xl font-extrabold text-feather-text mb-4">¡Misión Cumplida!</h1>
               <p className="text-lg text-gray-600 mb-8">
@@ -300,7 +336,7 @@ export default function DailyPracticePage() {
                   <span className="font-bold text-feather-blue">¡Sigue así!</span>
               </p>
               
-              <div className="w-full space-y-4">
+              <div className="w-full space-y-4 mb-6">
                 <Button variant="primary" size="lg" fullWidth onClick={() => router.push("/practice")}>
                     Volver al Inicio
                 </Button>
