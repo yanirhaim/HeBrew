@@ -9,7 +9,7 @@ import { cachePracticePayload, fetchConjugationAndPractice } from "@/lib/openrou
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "convex/_generated/api";
 
 export default function ConjugationPage() {
   const router = useRouter();

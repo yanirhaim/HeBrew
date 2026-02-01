@@ -3,7 +3,7 @@
 import { Word } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 
 interface WordCardProps {

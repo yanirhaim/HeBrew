@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { VocabularyWord } from "@/lib/types";
 import { getOpenAIClient } from "@/lib/openai";
 import { convexClient } from "@/lib/convex-server";
-import { api } from "../../../convex/_generated/api";
+import { api } from "convex/_generated/api";
 
 interface ReadingResponse {
   text: string;

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "convex/_generated/api";
 import { convexWordToWord } from "@/lib/convex-helpers";
 import { Word, Conjugation } from "@/lib/types";
 import Link from "next/link";

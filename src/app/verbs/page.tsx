@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "convex/_generated/api";
 import WordCard from "@/components/WordCard";
 import EmptyState from "@/components/EmptyState";
 import { Button } from "@/components/ui/Button";

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { VocabularyWord, Word, Conjugation, MasteryByTense } from "@/lib/types";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "convex/_generated/api";
 import { convexWordToWord } from "@/lib/convex-helpers";
 import { conjugateVerb } from "@/lib/openrouter";
 import InteractiveReading from "@/components/InteractiveReading";
