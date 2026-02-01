@@ -184,9 +184,9 @@ export default function DailyPracticePage() {
     const progress = ((currentExerciseIndex + 1) / practiceData.exercises.length) * 100;
 
     return (
-      <div className="mx-auto flex h-[100svh] max-w-md flex-col bg-white px-5 pb-4 pt-4">
+      <div className="mx-auto grid h-[100svh] max-w-md grid-rows-[auto,1fr,auto] overflow-hidden bg-white px-4 pt-safe pb-safe">
         {/* Header with Progress */}
-        <div className="mb-4 flex items-center gap-4">
+        <div className="mb-3 flex items-center gap-4 pt-2">
           <button 
             onClick={() => router.back()} 
             className="text-feather-gray hover:text-feather-text-light transition-colors"
@@ -201,22 +201,25 @@ export default function DailyPracticePage() {
           </div>
         </div>
 
-        <div className="flex-1 min-h-0">
-          <h1 className="mb-1 text-2xl font-extrabold text-feather-text text-center">
+        <div className="min-h-0">
+          <h1 className="mb-1 text-xl font-extrabold text-feather-text text-center">
             Práctica Diaria
           </h1>
-          <p className="mb-4 text-center text-feather-text-light font-bold text-sm">
+          <p className="mb-3 text-center text-feather-text-light font-bold text-xs">
             {currentExercise.type === "flashcard" ? "Selecciona el significado" : "Completa la palabra faltante"}
           </p>
 
           {currentExercise.type === "flashcard" ? (
             // Flashcard style
-            <div className="mb-4">
-              <Card className="w-full flex flex-col items-center justify-center p-6 text-center">
-                <div className="mb-6 text-sm font-bold uppercase tracking-wide text-feather-text-light">
+            <div className="mb-3">
+              <Card className="w-full flex flex-col items-center justify-center p-4 text-center">
+                <div className="mb-4 text-xs font-bold uppercase tracking-wide text-feather-text-light">
                   ¿Cuál es el significado?
                 </div>
-                <div className="mb-6 text-5xl font-extrabold text-feather-text" dir="rtl">
+                <div
+                  className="mb-4 text-[clamp(2rem,7vw,3rem)] font-extrabold leading-tight text-feather-text"
+                  dir="rtl"
+                >
                   {currentExercise.sentence}
                 </div>
                 
@@ -242,7 +245,7 @@ export default function DailyPracticePage() {
                         variant={variant}
                         onClick={() => !showFeedback && setUserInput(option)}
                         fullWidth
-                        className="h-14 text-base"
+                        className="h-12 text-sm"
                         disabled={showFeedback}
                       >
                         {option}
@@ -255,13 +258,13 @@ export default function DailyPracticePage() {
           ) : (
             <>
               {/* Question Bubble */}
-              <div className="mb-4 flex gap-4">
-                <div className="text-4xl self-end">🦉</div>
-                <div className="relative rounded-2xl border-2 border-feather-gray p-4 flex-1">
+              <div className="mb-3 flex gap-3">
+                <div className="text-3xl self-end">🦉</div>
+                <div className="relative rounded-2xl border-2 border-feather-gray p-3 flex-1">
                   <div 
                     className="absolute -left-2 bottom-6 h-4 w-4 rotate-45 border-b-2 border-l-2 border-feather-gray bg-white"
                   ></div>
-                  <div className="text-xl font-bold text-feather-text text-right" dir="rtl">
+                  <div className="text-lg font-bold text-feather-text text-right" dir="rtl">
                     {currentExercise.sentence.split("_____").map((part, i, arr) => (
                       <span key={i}>
                         {part}
@@ -271,14 +274,14 @@ export default function DailyPracticePage() {
                       </span>
                     ))}
                   </div>
-                  <div className="mt-2 text-sm font-medium text-feather-text-light">
+                  <div className="mt-1 text-xs font-medium text-feather-text-light">
                     {currentExercise.translation}
                   </div>
                 </div>
               </div>
 
               {/* Interaction Area */}
-              <div className="mb-4">
+              <div className="mb-3">
                 {currentExercise.type === "multiple_choice" && currentExercise.options ? (
                   <div className="grid grid-cols-2 gap-3">
                     {currentExercise.options.map((option, idx) => (
@@ -297,7 +300,7 @@ export default function DailyPracticePage() {
                         }
                         onClick={() => !showFeedback && setUserInput(option)}
                         fullWidth
-                        className="h-14 text-base"
+                        className="h-12 text-sm"
                         dir="rtl"
                       >
                         {option}
@@ -309,7 +312,7 @@ export default function DailyPracticePage() {
                     value={userInput}
                     onChange={(e) => !showFeedback && setUserInput(e.target.value)}
                     placeholder="Escribe la respuesta..."
-                    className="text-center text-2xl h-16"
+                    className="text-center text-xl h-12"
                     disabled={showFeedback}
                   />
                 )}
@@ -319,7 +322,7 @@ export default function DailyPracticePage() {
         </div>
 
         {/* Footer / Feedback */}
-        <div className={`mt-auto w-full border-t-2 p-4 ${
+        <div className={`w-full border-t-2 p-3 ${
           showFeedback 
             ? isCorrect 
               ? "bg-[#d7ffb8] border-[#b8f28b]" 
