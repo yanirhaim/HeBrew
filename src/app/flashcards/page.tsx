@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef, Suspense } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "convex/_generated/api";
 import { convexWordToWord } from "@/lib/convex-helpers";
-import { Word, Conjugation } from "@/lib/types";
+import { Word } from "@/lib/types";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Id } from "convex/_generated/dataModel";
 
 export const dynamic = 'force-dynamic';
 
@@ -70,6 +71,33 @@ function shuffleArray<T>(array: T[]): T[] {
     return newArray;
 }
 
+function normalizeHebrew(text: string): string {
+    return text
+        .normalize("NFKC")
+        .replace(/[\u0591-\u05C7]/g, "")
+        .replace(/[^\p{L}\p{N}]+/gu, " ")
+        .trim()
+        .toLowerCase();
+}
+
+function pickSessionWords({ weakWords, reviewWords, newWords }: {
+    weakWords: Word[];
+    reviewWords: Word[];
+    newWords: Word[];
+}) {
+    const maxWeak = 6;
+    const maxReview = 12;
+    const maxNew = 4;
+
+    const selected = [
+        ...shuffleArray(weakWords).slice(0, maxWeak),
+        ...shuffleArray(reviewWords).slice(0, maxReview),
+        ...shuffleArray(newWords).slice(0, maxNew),
+    ];
+
+    return shuffleArray(selected);
+}
+
 function FlashcardsPageContent() {
     // --- State ---
     const [words, setWords] = useState<Word[]>([]);
@@ -87,16 +115,20 @@ function FlashcardsPageContent() {
     const searchParams = useSearchParams();
 
     // --- Initialize ---
-    const convexWords = useQuery(api.words.list);
+    const dailyWordsData = useQuery(api.words.getDailyWords);
+    const updateProgress = useMutation(api.words.updateProgress);
     
     useEffect(() => {
-        if (convexWords !== undefined) {
-            const fetchedWords = convexWords.map(convexWordToWord);
-            const validWords = fetchedWords.filter(w => w.hebrew && w.translation);
+        if (dailyWordsData !== undefined) {
+            const weakWords = dailyWordsData.weakWords.map(convexWordToWord);
+            const reviewWords = dailyWordsData.reviewWords.map(convexWordToWord);
+            const newWords = dailyWordsData.newWords.map(convexWordToWord);
+            const sessionWords = pickSessionWords({ weakWords, reviewWords, newWords });
+            const validWords = sessionWords.filter(w => w.hebrew && w.translation);
             setWords(validWords);
             setGameState("start");
         }
-    }, [convexWords]);
+    }, [dailyWordsData]);
     
     useEffect(() => {
         if (typeof window === 'undefined') return; // Skip on server
@@ -199,7 +231,11 @@ function FlashcardsPageContent() {
 
         // Normalize: remove case differences. 
         // Ideally we should remove niqqud for looser matching, but straightforward for now.
-        if (user.toLowerCase() === correct.toLowerCase()) {
+        const normalizedUser = normalizeHebrew(user);
+        const normalizedCorrect = normalizeHebrew(correct);
+        const isCorrect = normalizedUser.length > 0 && normalizedUser === normalizedCorrect;
+
+        if (isCorrect) {
             setFeedback("correct");
             // Bonus for streak? 
             // Base score 10, Streak adds multiplier? Let's verify score simple first.
@@ -209,6 +245,11 @@ function FlashcardsPageContent() {
             setFeedback("incorrect");
             setStreak(0);
         }
+
+        void updateProgress({
+            id: currentCard.originalWord.id as Id<"words">,
+            isCorrect,
+        }).catch(err => console.warn("Failed to update progress", err));
     };
 
     const nextCard = () => {
@@ -248,7 +289,9 @@ function FlashcardsPageContent() {
     }
 
     const currentCard = gameCards[currentIndex];
-    const progress = ((currentIndex) / gameCards.length) * 100;
+    const progress = gameCards.length > 0
+        ? ((currentIndex + 1) / gameCards.length) * 100
+        : 0;
 
     const isPlaying = gameState === "playing";
     const wrapperClassName = isPlaying
