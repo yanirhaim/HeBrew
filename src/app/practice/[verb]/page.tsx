@@ -325,7 +325,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-40 pt-6">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-6 pt-6">
       {/* Header with Progress */}
       <div className="mb-8 flex items-center gap-4">
         <button 
@@ -413,7 +413,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
       </div>
 
       {/* Footer / Feedback */}
-      <div className={`fixed bottom-0 left-0 right-0 p-4 border-t-2 z-[100] ${
+      <div className={`fixed bottom-20 left-0 right-0 p-4 border-t-2 z-[100] ${
           showFeedback 
             ? isCorrect 
                 ? "bg-[#d7ffb8] border-[#b8f28b]" 

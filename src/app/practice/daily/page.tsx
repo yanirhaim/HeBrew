@@ -184,7 +184,7 @@ export default function DailyPracticePage() {
     const progress = ((currentExerciseIndex + 1) / practiceData.exercises.length) * 100;
 
     return (
-      <div className="mx-auto grid h-[100svh] max-w-md grid-rows-[auto,1fr] overflow-hidden bg-white px-4 pt-safe pb-24">
+      <div className="mx-auto grid h-[100svh] max-w-md grid-rows-[auto,1fr] overflow-hidden bg-white px-4 pt-safe pb-4">
         {/* Header with Progress */}
         <div className="mb-3 flex items-center gap-4 pt-2">
           <button 
@@ -322,7 +322,7 @@ export default function DailyPracticePage() {
         </div>
 
         {/* Footer / Feedback */}
-        <div className={`fixed bottom-0 left-0 right-0 border-t-2 p-3 pb-safe ${
+        <div className={`fixed bottom-20 left-0 right-0 border-t-2 p-3 pb-3 z-[100] ${
           showFeedback 
             ? isCorrect 
               ? "bg-[#d7ffb8] border-[#b8f28b]" 
