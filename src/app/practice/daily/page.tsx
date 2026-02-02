@@ -184,9 +184,9 @@ export default function DailyPracticePage() {
     const progress = ((currentExerciseIndex + 1) / practiceData.exercises.length) * 100;
 
     return (
-      <div className="mx-auto grid h-[100svh] max-w-md grid-rows-[auto,1fr] overflow-hidden bg-white px-4 pt-safe pb-24">
+      <div className="mx-auto h-[100svh] max-w-md bg-white">
         {/* Header with Progress */}
-        <div className="mb-3 flex items-center gap-4 pt-2">
+        <div className="mb-3 flex items-center gap-4 pt-2 px-4 pt-safe">
           <button 
             onClick={() => router.back()} 
             className="text-feather-gray hover:text-feather-text-light transition-colors"
@@ -201,7 +201,7 @@ export default function DailyPracticePage() {
           </div>
         </div>
 
-        <div className="min-h-0">
+        <div className="px-4 pb-40 overflow-y-auto" style={{ height: 'calc(100svh - 60px)' }}>
           <h1 className="mb-1 text-xl font-extrabold text-feather-text text-center">
             Práctica Diaria
           </h1>
@@ -321,8 +321,8 @@ export default function DailyPracticePage() {
           )}
         </div>
 
-        {/* Footer / Feedback */}
-        <div className={`fixed bottom-0 left-0 right-0 border-t-2 p-3 pb-safe ${
+        {/* Footer / Feedback - Above bottom nav */}
+        <div className={`fixed bottom-[4.5rem] left-0 right-0 border-t-2 p-3 z-[60] ${
           showFeedback 
             ? isCorrect 
               ? "bg-[#d7ffb8] border-[#b8f28b]" 

@@ -325,9 +325,9 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-40 pt-6">
+    <div className="mx-auto h-[100svh] max-w-md bg-white overflow-y-auto">
       {/* Header with Progress */}
-      <div className="mb-8 flex items-center gap-4">
+      <div className="mb-8 flex items-center gap-4 px-5 pt-6">
         <button 
           onClick={() => router.back()} 
           className="text-feather-gray hover:text-feather-text-light transition-colors"
@@ -342,7 +342,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
         </div>
       </div>
 
-      <div className="flex-1">
+      <div className="px-5 pb-40">
         <h1 className="mb-2 text-2xl font-extrabold text-feather-text text-center capitalize">
           Quiz de {currentTense === "past" ? "Pasado" : currentTense === "present" ? "Presente" : "Futuro"}
         </h1>
@@ -412,8 +412,8 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
         </div>
       </div>
 
-      {/* Footer / Feedback */}
-      <div className={`fixed bottom-0 left-0 right-0 p-4 border-t-2 z-[100] ${
+      {/* Footer / Feedback - Above bottom nav */}
+      <div className={`fixed bottom-[4.5rem] left-0 right-0 p-4 border-t-2 z-[60] ${
           showFeedback 
             ? isCorrect 
                 ? "bg-[#d7ffb8] border-[#b8f28b]" 
