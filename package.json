@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:models": "tsx tests/model-benchmark.test.ts"
+    "test:models": "tsx tests/model-benchmark.test.ts",
+    "test:news": "tsx tests/news-vocab.test.ts",
+    "test:news:e2e": "RUN_E2E=1 tsx tests/news-summary.e2e.ts"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^6.4.0",

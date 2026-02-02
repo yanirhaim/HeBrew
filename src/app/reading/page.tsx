@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { generateReading, textToSpeech } from "@/lib/openrouter";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { VocabularyWord, Word, Conjugation, MasteryByTense } from "@/lib/types";
+import { VocabularyWord, Conjugation, MasteryByTense } from "@/lib/types";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
 import { convexWordToWord } from "@/lib/convex-helpers";
@@ -18,7 +18,7 @@ export default function ReadingPage() {
   const [selectedLength, setSelectedLength] = useState<"short" | "medium" | "long" | null>(null);
   const [readingText, setReadingText] = useState<string | null>(null);
   const [vocabularyWords, setVocabularyWords] = useState<VocabularyWord[]>([]);
-  const [usedWords, setUsedWords] = useState<Word[]>([]);
+  const [usedWords, setUsedWords] = useState<Array<{ hebrew: string }>>([]);
   const [translation, setTranslation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -234,7 +234,7 @@ export default function ReadingPage() {
   }, [vocabularyWords, checkWordsInDatabase]);
 
   const isWordInDatabase = (word: VocabularyWord): boolean => {
-    return usedWords.some(w => w.hebrew === word.hebrew);
+    return usedWords.some((w) => w.hebrew === word.hebrew);
   };
 
   const getWordKey = (word: VocabularyWord): string => {
@@ -242,8 +242,8 @@ export default function ReadingPage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white px-5 pb-40 pt-8">
-      <h1 className="mb-8 text-center text-3xl font-extrabold text-feather-text">
+    <div className="mx-auto flex min-h-[100svh] max-w-md flex-col bg-white px-5 pb-[116px] pt-safe">
+      <h1 className="mb-8 mt-4 text-center text-3xl font-extrabold text-feather-text">
         Lectura
       </h1>
 

@@ -1,12 +1,12 @@
 "use client";
 
-import { VocabularyWord, Word } from "@/lib/types";
+import { VocabularyWord } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 
 interface InteractiveReadingProps {
   text: string;
   vocabularyWords: VocabularyWord[];
-  usedWords: Word[]; // Words already in DB
+  usedWords: Array<{ hebrew: string }>; // Words already in DB
   onWordClick: (word: VocabularyWord) => void;
   selectedWord: VocabularyWord | null;
 }

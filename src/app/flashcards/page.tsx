@@ -6,6 +6,7 @@ import { api } from "convex/_generated/api";
 import { convexWordToWord } from "@/lib/convex-helpers";
 import { Word, Conjugation } from "@/lib/types";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 // --- Types ---
 type ChallengeType = "translation" | "conjugation";
@@ -81,6 +82,7 @@ export default function FlashcardsPage() {
     const [hintRevealed, setHintRevealed] = useState(false);
 
     const inputRef = useRef<HTMLInputElement>(null);
+    const searchParams = useSearchParams();
 
     // --- Initialize ---
     const convexWords = useQuery(api.words.list);
@@ -93,6 +95,13 @@ export default function FlashcardsPage() {
             setGameState("start");
         }
     }, [convexWords]);
+    
+    useEffect(() => {
+        const shouldAutoStart = searchParams?.get("autostart") === "1";
+        if (shouldAutoStart && gameState === "start" && words.length > 0) {
+            startGame();
+        }
+    }, [searchParams, gameState, words]);
 
     // --- Game Logic ---
     const generateCards = (sourceWords: Word[]): GameCard[] => {
@@ -237,13 +246,18 @@ export default function FlashcardsPage() {
     const currentCard = gameCards[currentIndex];
     const progress = ((currentIndex) / gameCards.length) * 100;
 
+    const isPlaying = gameState === "playing";
+    const wrapperClassName = isPlaying
+        ? "grid h-[100svh] grid-rows-[auto,1fr] overflow-hidden bg-white px-5 pt-safe pb-24"
+        : "flex min-h-[100svh] flex-col bg-slate-50 px-5 pb-[116px] pt-safe";
+
     return (
-        <div className="flex min-h-screen flex-col bg-slate-50 pb-24 pt-4">
-            <div className="mx-auto w-full max-w-md px-4">
+        <div className={wrapperClassName}>
+            <div className="mx-auto w-full max-w-md">
 
                 {/* --- Top Bar (In Game) --- */}
                 {gameState === "playing" && (
-                    <div className="mb-6 flex flex-col gap-2">
+                    <div className="mb-3 flex flex-col gap-2 pt-2">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
                                 <span className="font-bold text-slate-400 text-sm">Score</span>
@@ -268,38 +282,32 @@ export default function FlashcardsPage() {
 
                 {/* --- Start Screen --- */}
                 {gameState === "start" && (
-                    <div className="flex flex-col items-center justify-center space-y-8 py-20">
-                        <div className="text-center">
-                            <h1 className="text-4xl font-black text-slate-800">Flashcards 2.0</h1>
-                            <p className="mt-2 text-lg text-slate-600">Domina conjugaciones y vocabulario</p>
+                    <div className="flex min-h-[75vh] flex-col gap-4 px-2 py-6">
+                        <div className="mb-6 text-center">
+                            <h1 className="text-2xl font-extrabold text-feather-text">Flashcards</h1>
+                            <p className="mt-2 text-sm text-feather-text-light">
+                                Domina vocabulario y conjugaciones.
+                            </p>
                         </div>
 
-                        <div className="relative">
-                            <div className="absolute inset-0 animate-ping rounded-full bg-blue-200 opacity-20 duration-1000"></div>
-                            <div className="flex h-40 w-40 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-400 to-blue-600 shadow-xl rotate-3 transform transition-transform hover:rotate-6 text-white">
-                                <span className="text-7xl">🧠</span>
-                            </div>
+                        <div className="flex flex-1 flex-col items-center justify-center">
+                            <div className="mb-5 text-6xl animate-bounce">🧠</div>
+                            <button
+                                onClick={startGame}
+                                className="w-full rounded-2xl bg-feather-green px-8 py-4 text-lg font-bold text-white shadow-[0_4px_0_#58a700] active:translate-y-1 active:shadow-none transition-all hover:bg-[#6dde0a]"
+                            >
+                                Comenzar
+                            </button>
                         </div>
-
-                        <button
-                            onClick={startGame}
-                            className="w-full rounded-2xl bg-blue-500 px-8 py-4 text-xl font-bold text-white shadow-[0_4px_0_#2563eb] active:translate-y-1 active:shadow-none transition-all hover:bg-blue-400"
-                        >
-                            Comenzar Desafío
-                        </button>
-
-                        <p className="text-sm text-slate-400 text-center max-w-[200px]">
-                            Incluye verbos en pasado, presente y futuro.
-                        </p>
                     </div>
                 )}
 
                 {/* --- Gameplay --- */}
                 {gameState === "playing" && currentCard && (
-                    <div className="flex flex-col space-y-6">
+                    <div className="flex flex-col space-y-4 px-1">
 
                         {/* Card */}
-                        <div className="relative flex min-h-[220px] flex-col items-center justify-center rounded-3xl bg-white p-8 shadow-lg text-center border-b-4 border-slate-200">
+                        <div className="relative flex min-h-[180px] flex-col items-center justify-center rounded-3xl bg-white p-5 shadow-lg text-center border-b-4 border-slate-200">
 
                             {/* Badge */}
                             <div className={`absolute top-4 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider
@@ -308,13 +316,13 @@ export default function FlashcardsPage() {
                                 {currentCard.subPrompt}
                             </div>
 
-                            <h2 className="mt-6 text-4xl font-black text-slate-800 break-words w-full">
+                            <h2 className="mt-6 text-3xl font-black text-slate-800 break-words w-full">
                                 {currentCard.prompt}
                             </h2>
                         </div>
 
                         {/* Input Area */}
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             <div className="relative">
                                 <input
                                     ref={inputRef}
@@ -325,7 +333,7 @@ export default function FlashcardsPage() {
                                     placeholder="Escribe en hebreo..."
                                     dir="rtl"
                                     disabled={!!feedback}
-                                    className={`w-full rounded-2xl border-2 px-12 py-4 text-center text-2xl font-bold outline-none transition-all shadow-sm
+                                    className={`w-full rounded-2xl border-2 px-12 py-3 text-center text-xl font-bold outline-none transition-all shadow-sm
                       ${feedback === "correct" ? "border-green-500 bg-green-50 text-green-700 placeholder-green-300" :
                                             feedback === "incorrect" ? "border-red-500 bg-red-50 text-red-700 placeholder-red-300" :
                                                 "border-slate-300 focus:border-blue-400 focus:bg-white text-slate-700"}`}
@@ -349,42 +357,6 @@ export default function FlashcardsPage() {
                                 )}
                             </div>
 
-                            {!feedback ? (
-                                <button
-                                    onClick={checkAnswer}
-                                    className="w-full rounded-2xl bg-green-500 px-8 py-4 text-xl font-bold text-white shadow-[0_4px_0_#16a34a] active:translate-y-1 active:shadow-none transition-all hover:bg-green-400"
-                                >
-                                    Comprobar
-                                </button>
-                            ) : (
-                                <div className={`rounded-2xl p-4 ${feedback === "correct" ? "bg-green-100 border border-green-200" : "bg-red-100 border border-red-200"} animate-in slide-in-from-bottom-2 duration-300`}>
-                                    <div className="flex items-center gap-4 mb-4">
-                                        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${feedback === "correct" ? "bg-green-500" : "bg-red-500"} text-white font-bold text-2xl shadow-sm`}>
-                                            {feedback === "correct" ? "✓" : "✕"}
-                                        </div>
-                                        <div className="flex flex-col min-w-0">
-                                            <span className={`font-black text-xl ${feedback === "correct" ? "text-green-700" : "text-red-700"}`}>
-                                                {feedback === "correct" ? "¡Excelente!" : "Incorrecto"}
-                                            </span>
-                                            {feedback === "incorrect" && (
-                                                <div className="flex flex-col text-sm mt-1">
-                                                    <span className="text-red-500 font-semibold opacity-80">Respuesta correcta:</span>
-                                                    <span className="text-red-700 font-bold text-lg">{currentCard.answer}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        onClick={nextCard}
-                                        className={`w-full rounded-xl px-6 py-3 text-lg font-bold text-white shadow-sm active:translate-y-0.5 active:shadow-none transition-all
-                        ${feedback === "correct" ? "bg-green-500 hover:bg-green-600 shadow-[0_4px_0_#15803d]" : "bg-red-500 hover:bg-red-600 shadow-[0_4px_0_#b91c1c]"}
-                    `}
-                                    >
-                                        Continuar
-                                    </button>
-                                </div>
-                            )}
                         </div>
                     </div>
                 )}
@@ -431,6 +403,55 @@ export default function FlashcardsPage() {
                     </div>
                 )}
             </div>
+
+            {gameState === "playing" && currentCard && (
+                <div className={`fixed bottom-0 left-0 right-0 border-t-2 p-3 pb-safe ${
+                    feedback
+                        ? feedback === "correct"
+                            ? "bg-[#d7ffb8] border-[#b8f28b]"
+                            : "bg-[#ffdfe0] border-[#ffc1c1]"
+                        : "bg-white border-feather-gray"
+                }`}>
+                    <div className="mx-auto flex max-w-md items-center justify-between gap-4">
+                        {feedback ? (
+                            <div className="flex-1 min-w-0">
+                                <div className={`text-lg font-extrabold ${
+                                    feedback === "correct" ? "text-feather-green" : "text-feather-red"
+                                }`}>
+                                    {feedback === "correct" ? "¡Excelente!" : "Respuesta correcta:"}
+                                </div>
+                                {feedback === "incorrect" && (
+                                    <div className="mt-1 space-y-1">
+                                        <div className="text-feather-red font-bold text-base">{currentCard.answer}</div>
+                                        {currentCard.type === "conjugation" && (
+                                            <div className="text-xs font-bold uppercase text-feather-text-light">
+                                                Infinitivo:{" "}
+                                                <span className="text-feather-text">{currentCard.originalWord.hebrew}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="flex-1" />
+                        )}
+
+                        <button
+                            onClick={feedback ? nextCard : checkAnswer}
+                            disabled={!input}
+                            className={`min-w-[150px] rounded-2xl px-6 py-3 text-base font-bold text-white shadow-sm transition-all active:translate-y-0.5 active:shadow-none ${
+                                feedback
+                                    ? feedback === "correct"
+                                        ? "bg-green-500 hover:bg-green-600 shadow-[0_4px_0_#15803d]"
+                                        : "bg-red-500 hover:bg-red-600 shadow-[0_4px_0_#b91c1c]"
+                                    : "bg-green-500 hover:bg-green-400 shadow-[0_4px_0_#16a34a]"
+                            }`}
+                        >
+                            {feedback ? "Continuar" : "Comprobar"}
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

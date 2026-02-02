@@ -61,6 +61,33 @@ export interface ReadingApiResponse {
   }>;
 }
 
+export interface NewsListItem {
+  title: string;
+  link: string;
+  pubDate?: string;
+  description?: string;
+  imageUrl?: string;
+}
+
+export interface NewsListResponse {
+  source: string;
+  feedUrl: string;
+  items: NewsListItem[];
+}
+
+export interface NewsSummaryResponse {
+  headline: string;
+  headlineTranslation?: string;
+  summary: string;
+  translation?: string;
+  vocabularyWords: VocabularyWord[];
+  usedWords?: Array<{
+    hebrew: string;
+    translation: string;
+    id: string;
+  }>;
+}
+
 export async function translateText(
   text: string,
   direction: "he-to-es" | "es-to-he"
@@ -171,6 +198,80 @@ export async function generateReading(
     }
     throw new Error("Error desconocido al generar lectura");
   }
+}
+
+export async function fetchNewsList(): Promise<NewsListResponse> {
+  try {
+    const response = await fetch("/api/news", { method: "GET" });
+
+    if (!response.ok) {
+      const errorData: ConjugationError = await response.json();
+      throw new Error(errorData.error || "Error al cargar noticias");
+    }
+
+    const data: NewsListResponse = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Error desconocido al cargar noticias");
+  }
+}
+
+export async function summarizeNewsItem(item: NewsListItem): Promise<NewsSummaryResponse> {
+  try {
+    const response = await fetch("/api/news/summary", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(item),
+    });
+
+    if (!response.ok) {
+      const errorData: ConjugationError = await response.json();
+      throw new Error(errorData.error || "Error al resumir noticia");
+    }
+
+    const data: NewsSummaryResponse = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Error desconocido al resumir noticia");
+  }
+}
+
+export function cacheDailyNewsPayload(payload: NewsSummaryResponse, cacheKey: string) {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(
+      `news-cache:${cacheKey}`,
+      JSON.stringify({
+        ...payload,
+        cachedAt: Date.now(),
+      })
+    );
+  } catch (error) {
+    console.warn("Unable to cache news payload", error);
+  }
+}
+
+export function readCachedDailyNewsPayload(cacheKey: string): NewsSummaryResponse | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(`news-cache:${cacheKey}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed?.headline && parsed?.summary && parsed?.vocabularyWords) {
+      return parsed as NewsSummaryResponse;
+    }
+  } catch (error) {
+    console.warn("Unable to read cached news payload", error);
+  }
+  return null;
 }
 
 export interface TextToSpeechApiResponse {
