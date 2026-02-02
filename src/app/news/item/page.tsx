@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   summarizeNewsItem,
@@ -19,7 +19,9 @@ import InteractiveReading from "@/components/InteractiveReading";
 import VocabularyFlashcard from "@/components/VocabularyFlashcard";
 import AudioPlayer from "@/components/AudioPlayer";
 
-export default function NewsItemPage() {
+export const dynamic = 'force-dynamic';
+
+function NewsItemPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [headline, setHeadline] = useState<string | null>(null);
@@ -361,5 +363,17 @@ export default function NewsItemPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function NewsItemPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center bg-white">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+      </div>
+    }>
+      <NewsItemPageContent />
+    </Suspense>
   );
 }
