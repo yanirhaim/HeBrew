@@ -19,6 +19,8 @@ import InteractiveReading from "@/components/InteractiveReading";
 import VocabularyFlashcard from "@/components/VocabularyFlashcard";
 import AudioPlayer from "@/components/AudioPlayer";
 
+export const dynamic = 'force-dynamic';
+
 export default function NewsItemPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
