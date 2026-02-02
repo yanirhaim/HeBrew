@@ -94,10 +94,10 @@ Important:
       model: "perplexity/sonar",
       messages: useSystem
         ? [
-            { role: "system", content: systemContent },
-            { role: "user", content: prompt },
+            { role: "system" as const, content: systemContent },
+            { role: "user" as const, content: prompt },
           ]
-        : [{ role: "user", content: `${systemContent}\n\n${prompt}` }],
+        : [{ role: "user" as const, content: `${systemContent}\n\n${prompt}` }],
       temperature: 0.4,
       max_tokens: 2000,
     });
@@ -186,8 +186,8 @@ Return ONLY valid JSON with this exact structure:
         vocabCompletion = await openai.chat.completions.create({
           model: "perplexity/sonar",
           messages: [
-            { role: "system", content: systemContent },
-            { role: "user", content: vocabPrompt },
+            { role: "system" as const, content: systemContent },
+            { role: "user" as const, content: vocabPrompt },
           ],
           temperature: 0.2,
           max_tokens: 1500,
@@ -196,7 +196,7 @@ Return ONLY valid JSON with this exact structure:
         if (err?.status === 400) {
           vocabCompletion = await openai.chat.completions.create({
             model: "perplexity/sonar",
-            messages: [{ role: "user", content: `${systemContent}\n\n${vocabPrompt}` }],
+            messages: [{ role: "user" as const, content: `${systemContent}\n\n${vocabPrompt}` }],
             temperature: 0.2,
             max_tokens: 1500,
           });
