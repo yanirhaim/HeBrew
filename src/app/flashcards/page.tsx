@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
 import { convexWordToWord } from "@/lib/convex-helpers";
@@ -70,7 +70,7 @@ function shuffleArray<T>(array: T[]): T[] {
     return newArray;
 }
 
-export default function FlashcardsPage() {
+function FlashcardsPageContent() {
     // --- State ---
     const [words, setWords] = useState<Word[]>([]);
     const [gameCards, setGameCards] = useState<GameCard[]>([]);
@@ -99,10 +99,12 @@ export default function FlashcardsPage() {
     }, [convexWords]);
     
     useEffect(() => {
+        if (typeof window === 'undefined') return; // Skip on server
         const shouldAutoStart = searchParams?.get("autostart") === "1";
         if (shouldAutoStart && gameState === "start" && words.length > 0) {
             startGame();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams, gameState, words]);
 
     // --- Game Logic ---
@@ -455,5 +457,17 @@ export default function FlashcardsPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function FlashcardsPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex h-screen items-center justify-center bg-gray-50">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+            </div>
+        }>
+            <FlashcardsPageContent />
+        </Suspense>
     );
 }
