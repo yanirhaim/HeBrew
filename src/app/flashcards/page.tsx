@@ -252,12 +252,12 @@ function FlashcardsPageContent() {
 
     const isPlaying = gameState === "playing";
     const wrapperClassName = isPlaying
-        ? "grid h-[100svh] grid-rows-[auto,1fr] overflow-hidden bg-white px-5 pt-safe pb-24"
+        ? "h-[100svh] overflow-y-auto bg-white"
         : "flex min-h-[100svh] flex-col bg-slate-50 px-5 pb-[116px] pt-safe";
 
     return (
         <div className={wrapperClassName}>
-            <div className="mx-auto w-full max-w-md">
+            <div className={`mx-auto w-full max-w-md ${isPlaying ? "px-5 pt-safe pb-40" : ""}`}>
 
                 {/* --- Top Bar (In Game) --- */}
                 {gameState === "playing" && (
@@ -409,7 +409,7 @@ function FlashcardsPageContent() {
             </div>
 
             {gameState === "playing" && currentCard && (
-                <div className={`fixed bottom-0 left-0 right-0 border-t-2 p-3 pb-safe ${
+                <div className={`fixed bottom-[4.5rem] left-0 right-0 border-t-2 p-3 z-[60] ${
                     feedback
                         ? feedback === "correct"
                             ? "bg-[#d7ffb8] border-[#b8f28b]"
