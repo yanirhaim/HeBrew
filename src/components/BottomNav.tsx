@@ -254,10 +254,6 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
-  // Hide on practice mode pages (but not the main /practice hub)
-  const shouldHide = pathname.startsWith("/practice/");
-
-  if (shouldHide) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t-2 border-feather-gray bg-white pb-safe">

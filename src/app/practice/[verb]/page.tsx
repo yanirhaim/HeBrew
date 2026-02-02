@@ -413,7 +413,7 @@ export default function VerbPracticePage({ params }: { params: Promise<{ verb: s
       </div>
 
       {/* Footer / Feedback */}
-      <div className={`fixed bottom-20 left-0 right-0 p-4 border-t-2 z-[100] ${
+      <div className={`fixed bottom-16 left-0 right-0 p-4 border-t-2 z-[60] ${
           showFeedback 
             ? isCorrect 
                 ? "bg-[#d7ffb8] border-[#b8f28b]" 
